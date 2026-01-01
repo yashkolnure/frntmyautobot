@@ -18,6 +18,7 @@ import HelpCenter from './pages/HelpCenter';
 import APIDocs from './pages/APIDocs';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import SuperAdmin from './pages/SuperAdmin';
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
           <Route path="/docs" element={<APIDocs />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/yashkolnure" element={<SuperAdmin />} />
         </Routes>
       </Layout>
     </Router>

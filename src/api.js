@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // --- INITIALIZATION ---
-const API = axios.create({ baseURL: '/api' });
+const API = axios.create({ baseURL: 'http://localhost:5000/api' });
 
 // --- REQUEST INTERCEPTOR (JWT Injection) ---
 API.interceptors.request.use((req) => {
@@ -45,5 +45,9 @@ export const sendPublicMessage = (botId, message, customerIdentifier, customerDa
 export const getLeads = () => API.get('/leads');
 export const updateLeadStatus = (id, status) => API.patch(`/leads/${id}`, { status });
 export const deleteLead = (id) => API.delete(`/leads/${id}`);
+
+// --- ADMIN MANAGEMENT ---
+export const getAllUsers = () => API.get('/auth/admin/users');
+export const decommissionNode = (userId) => API.delete(`/auth/admin/user/${userId}`);
 
 export default API;

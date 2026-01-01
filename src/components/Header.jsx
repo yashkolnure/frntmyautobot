@@ -68,7 +68,7 @@ const Header = () => {
                 <a
                   key={link.name}
                   href={getLinkHref(link.href)}
-                  className="px-5 py-2 text-[10px] lg:text-xs font-black text-slate-400 hover:text-white uppercase tracking-[0.2em] transition-all rounded-full hover:bg-white/10"
+                  className="px-2 py-2 text-[10px] lg:text-xs font-black text-slate-400 hover:text-white uppercase tracking-[0.2em] transition-all rounded-full hover:bg-white/10"
                 >
                   {link.name}
                 </a>
@@ -78,18 +78,13 @@ const Header = () => {
 
           {/* --- ACTION BUTTONS --- */}
           <div className="flex items-center gap-2 lg:gap-4">
-            <Link 
-              to="/login" 
-              className="hidden sm:block px-4 py-2 text-[10px] lg:text-xs font-black text-slate-400 hover:text-white uppercase tracking-widest transition-colors"
-            >
-              Login
-            </Link>
+         
             
             <Link 
               to="/login"
               className="relative group overflow-hidden px-5 py-2.5 bg-purple-600 text-white rounded-xl font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center gap-2"
             >
-              <span className="relative z-10 italic">Start Free</span>
+              <span className="relative z-10 italic">Login</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform relative z-10" />
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
             </Link>

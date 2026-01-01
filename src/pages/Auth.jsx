@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, Mail, Lock, User, ArrowRight, Key, X, ChevronLeft, Loader2 } from 'lucide-react';
+import { 
+  Bot, Mail, Lock, User, ArrowRight, Key, 
+  X, ChevronLeft, Loader2, Phone 
+} from 'lucide-react';
 import { login, register, requestPasswordReset } from '../api'; 
 
 export default function Auth() {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'forgot'
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ 
+    name: '', 
+    email: '', 
+    password: '', 
+    contact: '' 
+  });
   const [error, setError] = useState("");
   const [message, setMessage] = useState(""); 
   const [loading, setLoading] = useState(false);
@@ -25,11 +33,41 @@ export default function Auth() {
     e.preventDefault();
     setError("");
     setMessage("");
+
+    // --- 1. NEURAL VALIDATION PROTOCOL ---
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[0-9]{10,15}$/;
+
+    // Basic fields validation
+    if (!formData.email.trim()) return setError("Email identity required.");
+    if (!emailRegex.test(formData.email.toLowerCase().trim())) {
+      return setError("Invalid email protocol format.");
+    }
+
+    if (authMode !== 'forgot') {
+      if (!formData.password || formData.password.length < 6) {
+        return setError("Security key must be at least 6 characters.");
+      }
+    }
+
+    // Registration specific validations
+    if (authMode === 'register') {
+      if (!formData.name.trim()) return setError("Node name is mandatory.");
+      
+      if (!formData.contact.trim()) {
+        return setError("Contact route (WhatsApp) is required.");
+      }
+      if (!phoneRegex.test(formData.contact.trim())) {
+        return setError("Enter a Valid Contact Number");
+      }
+    }
+
     setLoading(true);
 
     const submissionData = {
       ...formData,
-      email: formData.email.toLowerCase().trim()
+      email: formData.email.toLowerCase().trim(),
+      contact: formData.contact.trim()
     };
 
     try {
@@ -37,31 +75,31 @@ export default function Auth() {
         await requestPasswordReset(submissionData.email);
         setMessage("A password reset link has been sent to your email inbox.");
       } else {
-        // 1. Perform API Authentication
+        // 2. Perform API Authentication
         const { data } = authMode === 'login' 
-          ? await login(submissionData) 
+          ? await login({ 
+              email: submissionData.email, 
+              password: submissionData.password 
+            }) 
           : await register(submissionData);
         
-        // 2. Securely store the token
+        // 3. Securely store the token
         localStorage.setItem('token', data.token); 
 
-        // 3. Strategic Redirection Flow
+        // 4. Strategic Redirection Flow
         if (authMode === 'register') {
-          // New users must select an AI Plan first
           navigate('/pricing');
         } else {
-          // Returning users go straight to their bots
           navigate('/dashboard');
         }
       }
     } catch (err) {
-      // Handle server-side errors
-      setError(err.response?.data?.message || "Connection error. Please try again.");
+      // Handle server-side errors (e.g., User already exists, Wrong password)
+      setError(err.response?.data?.message || "Neural link failure. Try again.");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#05010d] pt-10 px-6 py-12 relative overflow-hidden font-sans">
       
@@ -111,14 +149,27 @@ export default function Auth() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {authMode === 'register' && (
-              <div className="relative group">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-purple-400 transition-colors" size={18} />
-                <input 
-                  type="text" placeholder="FULL NAME" required
-                  className="w-full pl-12 pr-4 py-4 bg-black/40 border border-white/10 rounded-2xl text-white outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-all text-xs font-black tracking-widest"
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                />
-              </div>
+              <>
+                {/* FULL NAME */}
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-purple-400 transition-colors" size={18} />
+                  <input 
+                    type="text" placeholder="FULL NAME" required
+                    className="w-full pl-12 pr-4 py-4 bg-black/40 border border-white/10 rounded-2xl text-white outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-all text-xs font-black tracking-widest"
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  />
+                </div>
+
+                {/* CONTACT NUMBER */}
+                <div className="relative group">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-purple-400 transition-colors" size={18} />
+                  <input 
+                    type="tel" placeholder="CONTACT NUMBER (WHATSAPP)" required
+                    className="w-full pl-12 pr-4 py-4 bg-black/40 border border-white/10 rounded-2xl text-white outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-all text-xs font-black tracking-widest"
+                    onChange={(e) => setFormData({...formData, contact: e.target.value})}
+                  />
+                </div>
+              </>
             )}
             
             <div className="relative group">
