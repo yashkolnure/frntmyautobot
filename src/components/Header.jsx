@@ -44,7 +44,7 @@ const Header = () => {
             <div className="relative bg-[#0b031a] p-2 rounded-xl border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
               <Bot className="w-5 h-5 lg:w-6 lg:h-6 text-purple-400" />
             </div>
-            <span className="font-black text-2xl uppercase lg:text-xl tracking-tighter italic text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-purple-600">
+            <span className="font-black text-2xl lg:text-xl tracking-tighter italic text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-purple-600">
               MyAutoBot.in
             </span>
           </Link>
