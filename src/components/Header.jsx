@@ -29,7 +29,7 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full z-[100] px-4 py-4 lg:py-6 transition-all duration-500">
+    <header className="fixed top-0 left-0 w-full z-[100] px-4 py-4 lg:py-2 transition-all duration-500">
       <div 
         className={`container mx-auto transition-all duration-500 rounded-2xl lg:rounded-[2.5rem] border ${
           isScrolled 
@@ -41,8 +41,8 @@ const Header = () => {
           
           {/* --- LOGO --- */}
           <Link to="/" className="flex items-center gap-3 group cursor-pointer shrink-0">
-            <div className="relative bg-[#0b031a] p-2 rounded-xl border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-              <Bot className="w-5 h-5 lg:w-6 lg:h-6 text-purple-400" />
+            <div className="relative bg-[#0b031a] p-1.5 rounded-xl border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+              <Bot className="w-12 h-12 lg:w-7 lg:h-7 text-purple-400" />
             </div>
             <span className="font-black text-2xl lg:text-xl tracking-tighter italic text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-purple-600">
               MyAutoBot.in

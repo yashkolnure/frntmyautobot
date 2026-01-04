@@ -1,261 +1,395 @@
-import React, { useMemo, useState } from 'react';
-import { 
-  Bot, ShieldCheck, Loader2, Cpu, Database, Terminal, 
-  MessageSquare, Send, Sparkles, Zap, Coins, Wallet,
-  Activity, Globe, Lock, BarChart3, Edit3, Wand2, AlertTriangle, XCircle,ArrowRight
-} from 'lucide-react';
+import React, { useState, useEffect, useMemo } from "react";
 
-export default function TrainingView({ 
-  data = {}, setData, handleSave, loading, chatHistory = [], 
-  chatInput = "", setChatInput, handleChat, isChatting = false, 
-  compiledPrompt = "", userTokens = 0 ,setActiveTab
-}) {
-  const [isManualOverride, setIsManualOverride] = useState(false);
-  const [showWarning, setShowWarning] = useState(true); // Control the low balance popup
+/**
+ * PETOBA NEURAL ENGINE - V2.5 PRODUCTION
+ * A standalone, zero-dependency configuration suite with Glassmorphism UI.
+ * Handles: Auto-Compiling RAG, Manual Overrides, Persona Selection, and VPS Sync.
+ */
+export default function BotEngine() {
+  const [data, setData] = useState(null);
+  const [isFetching, setIsFetching] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [tokens, setTokens] = useState(0);
 
-  const syncLevel = useMemo(() => {
-    if (!data) return 0;
-    const fields = [
-        data.businessName, data.role, data.catalog, 
-        data.policies, data.contact, data.constraints, data.examples
-    ];
-    const filled = fields.filter(f => f && String(f).trim().length > 0).length;
-    return Math.floor((filled / fields.length) * 100);
-  }, [data]);
+  // Set this to your VPS production domain or local development IP
+  const API_BASE_URL = "http://localhost:5000/api/bot"; 
 
-  const canChat = userTokens >= 5;
-  const isLowBalance = userTokens < 25; // Define low balance threshold
+  /* -------------------------------------------------------------------------- */
+  /* 1. NEURAL LINK: DATA HYDRATION                                            */
+  /* -------------------------------------------------------------------------- */
+  useEffect(() => {
+    const fetchNeuralLink = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${API_BASE_URL}/config`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const res = await response.json();
+
+        if (response.ok && res.botConfig) {
+          setData(res.botConfig);
+          // Sync tokens from user object returned in the same call
+          setTokens(res.userTokens || 0);
+        } else {
+          // Default Template for New Neural Nodes
+          setData({
+            status: "draft",
+            isManualPromptEnabled: false,
+            isCustomRagEnabled: false,
+            model: { primary: "llama3", fallback: "llama3.2" },
+            customSystemPrompt: "",
+            ragFile: "",
+            rawData: { 
+              businessName: "", 
+              businessDescription: "", 
+              pricing: "",
+              faq: "",
+              policies: "",
+              agentType: "support",
+              tone: "professional",
+              language: "English"
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Critical: Neural Link Synchronization Failed.");
+      } finally {
+        setIsFetching(false);
+      }
+    };
+    fetchNeuralLink();
+  }, []);
+
+  /* -------------------------------------------------------------------------- */
+  /* 2. AI COMPILER: DYNAMIC LOGIC                                             */
+  /* -------------------------------------------------------------------------- */
+  const rawData = data?.rawData || {};
+
+  // RAG COMPILER: Merges separate nodes into a structured knowledge file
+  const autoRagContent = useMemo(() => {
+    return `
+# KNOWLEDGE BASE: ${rawData.businessName || "UNNAMED_ENTITY"}
+
+## DESCRIPTION
+${rawData.businessDescription || "Information not provided."}
+
+## OFFERINGS & PRICING
+${rawData.pricing || "Information not provided."}
+
+## FREQUENTLY ASKED QUESTIONS
+${rawData.faq || "Information not provided."}
+
+## POLICIES & COMPLIANCE
+${rawData.policies || "Information not provided."}
+    `.trim();
+  }, [rawData]);
+
+  // PROMPT COMPILER: Adjusts instructions based on Agent Role and Tone
+  const autoSystemPrompt = useMemo(() => {
+    const roles = {
+      support: `You are a Customer Support Expert for ${rawData.businessName}. Focus on accuracy and solving user issues.`,
+      sales: `You are a Sales Specialist for ${rawData.businessName}. Be persuasive and highlight value propositions.`,
+      lead: `You are a Lead Generation Agent for ${rawData.businessName}. Your primary goal is to collect Name and Email from users.`,
+      general: `You are a General Knowledge Assistant for ${rawData.businessName}.`
+    };
+
+    const tones = {
+      professional: "Use a professional, polished, and formal tone.",
+      friendly: "Use a warm, enthusiastic tone with helpful emojis.",
+      technical: "Be precise, objective, and use technical language."
+    };
+
+    return `
+${roles[rawData.agentType] || roles.support}
+TONE: ${tones[rawData.tone] || tones.professional}
+
+OPERATING CONSTRAINTS:
+1. ONLY answer questions using the provided Knowledge Base (RAG).
+2. If the answer is not present, politely state you don't know and ask for an email to follow up.
+3. Stay strictly on-topic regarding ${rawData.businessName}.
+    `.trim();
+  }, [rawData.businessName, rawData.agentType, rawData.tone]);
+
+  /* -------------------------------------------------------------------------- */
+  /* 3. VPS SYNCHRONIZATION (SAVE)                                             */
+  /* -------------------------------------------------------------------------- */
+  const handlePublish = async (statusOverride) => {
+    if (!rawData.businessName?.trim()) {
+      alert("❌ Business Name is required to initialize the engine.");
+      return;
+    }
+
+    setIsSaving(true);
+    const token = localStorage.getItem("token");
+    const finalStatus = statusOverride || data.status || "draft";
+    
+    // Determine source: Manual Overrides vs Auto-Generated
+    const finalRag = data.isCustomRagEnabled ? data.ragFile : autoRagContent;
+    const finalPrompt = data.isManualPromptEnabled ? data.customSystemPrompt : autoSystemPrompt;
+
+    const payload = {
+      ...data,
+      status: finalStatus,
+      systemPrompt: finalPrompt,
+      generatedPrompt: autoSystemPrompt, // Reference field
+      ragFile: finalRag,
+      rawData: rawData // Keeps UI fields separated
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/save`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const res = await response.json();
+
+      if (response.ok && res.botConfig) {
+        setData(res.botConfig);
+        alert(`Uplink Successful: Configuration saved as ${finalStatus.toUpperCase()}`);
+      } else {
+        throw new Error(res.message || "Save cycle failed.");
+      }
+    } catch (err) {
+      alert("Neural Sync Error: " + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  /* -------------------------------------------------------------------------- */
+  /* 4. RENDER LOGIC                                                           */
+  /* -------------------------------------------------------------------------- */
+  if (isFetching) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-indigo-500 border-opacity-50 mb-4 mx-auto"></div>
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Syncing_Nodes</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full mx-auto space-y-8 pb-32 px-4 animate-in fade-in duration-1000">
-      
-      {/* --- SYSTEM HUD --- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className={`bg-white/5 backdrop-blur-3xl p-4 rounded-[2rem] border ${isLowBalance ? 'border-amber-500/50 animate-pulse' : 'border-white/10'} flex items-center justify-between group`}>
-    <div className="flex items-center gap-4">
-      <div className={`${isLowBalance ? 'bg-amber-500/20 text-amber-500' : 'bg-purple-600/20 text-purple-400'} p-4 rounded-2xl border ${isLowBalance ? 'border-amber-500/30' : 'border-purple-500/30'}`}>
-        <Zap size={24} className="fill-current opacity-20" />
-      </div>
-      <div>
-        <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Neural Energy</p>
-        <h3 className={`text-3xl font-black italic tabular-nums ${isLowBalance ? 'text-amber-500' : 'text-white'}`}>{userTokens}</h3>
-      </div>
-    </div>
-
-    {/* --- UPDATED BUTTON --- */}
-    <button 
-      onClick={() => setActiveTab('purchase')} // <--- CLICK TO GO TO PURCHASE
-      className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-xl transition-all active:scale-90 flex items-center gap-2 group shadow-lg shadow-purple-900/20"
-    >
-      <Wallet size={16} className="group-hover:rotate-12 transition-transform" />
-      <span className="text-[10px] font-black uppercase tracking-widest">Refill</span>
-    </button>
-  </div>
-
-        {/* Sync Progress Card */}
-        <div className="bg-white/5 backdrop-blur-3xl p-4 rounded-[2rem] border border-white/10 flex flex-col justify-center gap-3">
-          <div className="flex justify-between items-end">
-            <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Brain Sync status</p>
-            <span className="text-sm font-black text-purple-400 italic">{syncLevel}%</span>
-          </div>
-          <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-purple-600 to-fuchsia-500 transition-all duration-1000" style={{ width: `${syncLevel}%` }} />
-          </div>
-        </div>
-
-        {/* Global Node Card */}
-        <div className="hidden md:flex bg-white/5 backdrop-blur-3xl p-4 rounded-[2rem] border border-white/10 items-center gap-4">
-          <div className="bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/20 text-emerald-500">
-            <Globe size={24} className="animate-[spin_8s_linear_infinite]" />
-          </div>
-          <div>
-            <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Network Status</p>
-            <h3 className="text-lg font-black text-emerald-400 uppercase italic">Edge Node Active</h3>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div className="min-h-screen text-zinc-100 p-4  selection:bg-indigo-500/30 font-sans">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* --- LEFT: CONFIGURATION PANEL --- */}
-        <div className="lg:col-span-7 xl:col-span-8 space-y-6">
-          <Section title="Identity Core" icon={<Cpu size={20}/>} badge="Level 1">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Input label="Organization Alias" value={data.businessName} onChange={(val) => setData({...data, businessName: val})} placeholder="e.g. Petoba SaaS" />
-              <Input label="Agent Designation" value={data.role} onChange={(val) => setData({...data, role: val})} placeholder="e.g. Lead Support" />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
-               <Input label="Escalation Route" value={data.contact} onChange={(val) => setData({...data, contact: val})} placeholder="Email or Phone" />
-               <Input label="Primary Language" value={data.language || 'English'} onChange={(val) => setData({...data, language: val})} placeholder="e.g. English, Hinglish" />
-            </div>
-          </Section>
-
-          <Section title="Intelligence Matrix" icon={<Database size={20}/>} badge="Level 2">
-            <Textarea label="Knowledge Base" value={data.catalog} onChange={(val) => setData({...data, catalog: val})} placeholder="Paste data here..." rows={10} />
-          </Section>
-
-          <Section title="Neural Constraints" icon={<ShieldCheck size={20}/>} badge="Safety">
-            <div className="space-y-3">
-              <Textarea label="Strict Guardrails" value={data.constraints} onChange={(val) => setData({...data, constraints: val})} placeholder="What NOT to say..." rows={4} />
-              <Textarea label="Perfect Examples" value={data.examples} onChange={(val) => setData({...data, examples: val})} placeholder="User: Hi! AI: Hello..." rows={5} />
-            </div>
-          </Section>
-
-          <div className="pt-6">
-            <button onClick={handleSave} disabled={loading} className="w-full relative group bg-purple-600 hover:bg-purple-500 text-white py-4 rounded-[2.5rem] transition-all overflow-hidden shadow-[0_20px_50px_-15px_rgba(168,85,247,0.5)] active:scale-95">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]" />
-              <div className="flex items-center gap-3 justify-center relative z-10">
-                {loading ? <Loader2 className="animate-spin" size={24} /> : <Activity size={24} />}
-                <span className="text-2xl font-black uppercase italic tracking-tighter">Deploy Neural Brain</span>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* --- RIGHT: ARCHITECT & TESTER --- */}
-        <div className="lg:col-span-5 xl:col-span-4 space-y-8 sticky top -20 self-start">
-          <div className="bg-[#0a0a0f] border border-white/10 rounded-[2.5rem] p-6 shadow-2xl relative">
-            <div className="flex items-center justify-between mb-6">
-               <div className="flex items-center gap-3">
-                  <Wand2 size={16} className="text-purple-500" />
-                  <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em]">Neural Architect</h3>
-               </div>
-               <button onClick={() => setIsManualOverride(!isManualOverride)} className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all text-[9px] font-black uppercase ${isManualOverride ? 'bg-purple-600 border-purple-500 text-white' : 'border-white/10 text-zinc-500'}`}>
-                 <Edit3 size={10} /> {isManualOverride ? 'Manual' : 'Auto'}
-               </button>
-            </div>
-            <div className="relative">
-               {isManualOverride ? (
-                  <textarea value={data.customInstructions || compiledPrompt} onChange={(e) => setData({...data, customInstructions: e.target.value})} className="w-full bg-black/60 rounded-2xl p-6 border border-purple-500/40 h-48 overflow-y-auto font-mono text-[10px] text-purple-100 outline-none custom-scrollbar leading-relaxed" />
-               ) : (
-                  <div className="bg-black/60 rounded-2xl p-6 border border-white/5 h-48 overflow-y-auto custom-scrollbar italic">
-                    <p className="text-purple-100/40 font-mono text-[10px] leading-relaxed whitespace-pre-wrap">{compiledPrompt || "// WAITING..."}</p>
-                  </div>
-               )}
-            </div>
-          </div>
-
-          {/* TESTER TERMINAL WITH LOW BALANCE POPUP */}
-          <div className="bg-white/5 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 shadow-2xl h-[550px] flex flex-col overflow-hidden relative">
-             
-             {/* POPUP ALERT FOR LOW TOKENS */}
-{/* POPUP ALERT FOR LOW TOKENS */}
-{isLowBalance && showWarning && (
-  <div className="absolute inset-x-4 top-40 z-50 animate-in fade-in zoom-in duration-300">
-    <div className="bg-[#1a1307] border border-amber-500/50 p-5 rounded-[1.5rem] shadow-2xl backdrop-blur-xl relative overflow-hidden group">
-      <div className="absolute top-0 right-0 p-2">
-        <button onClick={() => setShowWarning(false)} className="text-zinc-500 hover:text-white transition-colors">
-          <XCircle size={16} />
-        </button>
-      </div>
-      <div className="flex items-start gap-4">
-        <div className="bg-amber-500/20 p-2.5 rounded-xl text-amber-500">
-          <AlertTriangle size={20} />
-        </div>
-        <div className="flex-1">
-          <h5 className="text-xs font-black text-white uppercase italic tracking-wider">Critical Energy Levels</h5>
-          <p className="text-[10px] text-amber-200/60 font-medium leading-relaxed mt-1">
-            Neural Credits are below 25. Debugging will be restricted soon.
-          </p>
+        {/* LEFT COLUMN: ARCHITECTURE */}
+        <div className="lg:col-span-2 space-y-6">
           
-          {/* CORRECTED BUTTON: onClick is now on the button, not the icon */}
+          <header className="flex justify-between items-end border-b border-white/10 pb-6">
+            <div>
+              <h1 className="text-4xl font-black italic tracking-tighter uppercase text-white drop-shadow-2xl">Bot Engine</h1>
+              <p className="text-zinc-500 text-sm mt-3 font-medium tracking-wide">Autonomous Training Suite for <span className="text-indigo-400">MyAutoBot.in</span></p>
+            </div>
+            <div className="text-right backdrop-blur-md bg-white/[0.05] p-5 rounded-3xl border border-white/10">
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Neural Credits</p>
+              <p className="text-3xl font-mono text-center font-black text-indigo-400">{tokens}</p>
+            </div>
+          </header>
+
+          {/* DEPLOYMENT STATUS */}
+          <section className="backdrop-blur-xl bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 flex items-center justify-between shadow-2xl">
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <div className={`h-3 w-3 rounded-full ${data.status === 'active' ? 'bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.8)] animate-pulse' : 'bg-zinc-700'}`} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">System Status</h3>
+                <p className="text-[10px] text-zinc-500 font-mono mt-1 uppercase italic">{data.status === 'active' ? 'Production_Live' : 'Development_Draft'}</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={() => handlePublish("inactive")} className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black tracking-widest hover:bg-white/10 transition uppercase">Deactivate</button>
+              <button onClick={() => handlePublish("active")} className="px-6 py-2 bg-indigo-600/90 rounded-xl text-[10px] font-black tracking-widest hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20 uppercase">Publish</button>
+            </div>
+          </section>
+
+          {/* CORE ARCHITECTURE */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <GlassCard>
+              <Select 
+                label="Intelligence Model" 
+                value={data.model?.primary || "llama3"} 
+                options={[
+                  { value: "llama3", label: "Llama 3 (Meta)" },
+                  { value: "llama3.2", label: "Llama 3.2 (Speed)" },
+                  { value: "mistral", label: "Mistral 7B" },
+                  { value: "deepseek", label: "DeepSeek R1" }
+                ]}
+                onChange={(v) => setData({...data, model: {...data.model, primary: v}})}
+              />
+            </GlassCard>
+            <GlassCard>
+              <Select 
+                label="Agent Persona" 
+                value={rawData.agentType || "support"} 
+                options={[
+                  { value: "support", label: "Customer Support" },
+                  { value: "sales", label: "Sales Optimizer" },
+                  { value: "lead", label: "Lead Capture" },
+                  { value: "general", label: "Assistant" }
+                ]}
+                onChange={(v) => setData({...data, rawData: {...rawData, agentType: v}})}
+              />
+            </GlassCard>
+          </div>
+
+          {/* KNOWLEDGE FOUNDATION */}
+          <section className="backdrop-blur-md bg-white/[0.05] border border-white/5 rounded-[3rem] p-8 space-y-4 shadow-inner">
+            <div className="flex justify-between items-center">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500">Knowledge Foundation</h2>
+              <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/5">
+                <span className="text-[9px] text-zinc-500 uppercase font-black">Manual RAG Override</span>
+                <Toggle value={data.isCustomRagEnabled} onChange={(v) => setData({...data, isCustomRagEnabled: v})} />
+              </div>
+            </div>
+
+            {data.isCustomRagEnabled ? (
+              <Textarea 
+                label="Custom Knowledge Feed" 
+                placeholder="Paste raw knowledge data here..."
+                value={data.ragFile || ""} 
+                onChange={(v) => setData({...data, ragFile: v})} 
+              />
+            ) : (
+              <div className="space-y-8">
+                <Input label="Business Entity Name" value={rawData.businessName} onChange={(v) => setData({...data, rawData: {...rawData, businessName: v}})} />
+                <Textarea label="Base Context / Description" value={rawData.businessDescription} onChange={(v) => setData({...data, rawData: {...rawData, businessDescription: v}})} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <Textarea label="Offerings & Pricing" value={rawData.pricing} onChange={(v) => setData({...data, rawData: {...rawData, pricing: v}})} />
+                  <Textarea label="Core FAQs" value={rawData.faq} onChange={(v) => setData({...data, rawData: {...rawData, faq: v}})} />
+                </div>
+                <Textarea label="Operating Policies" value={rawData.policies} onChange={(v) => setData({...data, rawData: {...rawData, policies: v}})} />
+              </div>
+            )}
+          </section>
+
+          {/* PROMPT CONTROL */}
+          <section className="backdrop-blur-md bg-white/[0.05] border border-white/5 rounded-[3rem] p-10 space-y-8">
+            <div className="flex justify-between items-center">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500">Intelligence Control</h2>
+              <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/5">
+                <span className="text-[9px] text-zinc-500 uppercase font-black">Manual Prompt Override</span>
+                <Toggle value={data.isManualPromptEnabled} onChange={(v) => setData({...data, isManualPromptEnabled: v})} />
+              </div>
+            </div>
+
+            {data.isManualPromptEnabled ? (
+              <Textarea 
+                label="Manual System Prompt" 
+                value={data.customSystemPrompt || ""} 
+                onChange={(v) => setData({...data, customSystemPrompt: v})} 
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Select 
+                  label="Interaction Tone" 
+                  value={rawData.tone || "professional"} 
+                  options={[
+                    {value: "professional", label: "Professional"},
+                    {value: "friendly", label: "Friendly"},
+                    {value: "technical", label: "Technical"}
+                  ]}
+                  onChange={(v) => setData({...data, rawData: {...rawData, tone: v}})}
+                />
+                <Select 
+                  label="Primary Language" 
+                  value={rawData.language || "English"} 
+                  options={[{value: "English", label: "English"}, {value: "Hindi", label: "Hindi"}]}
+                  onChange={(v) => setData({...data, rawData: {...rawData, language: v}})}
+                />
+              </div>
+            )}
+          </section>
+
           <button 
-            onClick={() => typeof setActiveTab === 'function' && setActiveTab('purchase')}
-            className="mt-3 text-[9px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all"
+            disabled={isSaving}
+            onClick={() => handlePublish(data.status)}
+            className="w-full bg-white/90 text-black py-7 rounded-[2.5rem] font-black uppercase tracking-[0.4em] hover:bg-white transition-all active:scale-[0.98] disabled:opacity-50 shadow-2xl"
           >
-            Initialize Refill <ArrowRight size={10} />
+            {isSaving ? "Synchronizing_Engine..." : "Commit Node Changes"}
           </button>
         </div>
-      </div>
-    </div>
-  </div>
-)}
 
-             <div className="p-6 border-b border-white/5 flex items-center justify-between bg-purple-600/5">
-                <div className="flex items-center gap-3">
-                  <div className="bg-purple-600 p-2.5 rounded-xl"><MessageSquare size={18} className="text-white"/></div>
-                  <h4 className="text-white font-black text-xs uppercase italic">Neural Tester</h4>
-                </div>
-                <div className={`px-3 py-1.5 rounded-xl text-[10px] font-black italic transition-all ${isLowBalance ? 'bg-amber-500/20 text-amber-500 animate-pulse' : 'bg-black/40 text-white'}`}>
-                   {userTokens} <span className={isLowBalance ? 'text-amber-500' : 'text-purple-500'}>Credits</span>
-                </div>
-             </div>
+        {/* RIGHT COLUMN: PREVIEW */}
+        <div className="lg:col-span-1">
+          <aside className="sticky top-0 ">
+            <div className="backdrop-blur-2xl bg-white/[0.04] border border-white/10 rounded-[2.5rem] p-8 space-y-8 shadow-2xl">
+               <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] text-center pb-6 border-b border-white/5">Neural Architecture Preview</h3>
+               
+               <div className="space-y-8">
+                  <div>
+                    <label className="text-[9px] font-black text-indigo-400 uppercase block mb-3 tracking-widest">Model / Environment</label>
+                    <div className="flex gap-2">
+                      <span className="text-[9px] bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-lg border border-indigo-500/20 font-mono font-bold uppercase">{data.model?.primary}</span>
+                      <span className="text-[9px] bg-white/5 text-zinc-400 px-3 py-1 rounded-lg border border-white/5 font-mono font-bold uppercase">{rawData.agentType}</span>
+                    </div>
+                  </div>
 
-             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-black/20 custom-scrollbar">
-                {chatHistory.map((msg, i) => (
-                   <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`p-4 rounded-2xl max-w-[90%] text-xs font-bold shadow-xl ${
-                        msg.role === 'user' ? 'bg-purple-600 text-white rounded-tr-none' : 'bg-white/10 text-zinc-100 rounded-tl-none border border-white/10'
-                      }`}>
-                        {msg.text}
-                      </div>
-                   </div>
-                ))}
-                {isChatting && <div className="text-[8px] text-purple-400 animate-pulse uppercase px-4 italic tracking-widest">Processing...</div>}
-             </div>
-
-             <div className="p-5 bg-black/40 border-t border-white/5 backdrop-blur-3xl">
-                <div className="relative flex items-center gap-3">
-                  <input 
-                    value={chatInput} 
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && canChat && handleChat()}
-                    className="flex-1 bg-black/60 border border-white/10 px-5 py-4 rounded-2xl outline-none text-white text-xs font-bold uppercase tracking-widest disabled:opacity-30 placeholder:text-zinc-700"
-                    placeholder={canChat ? "Simulate query..." : "Credits Depleted"}
-                    disabled={!canChat}
-                  />
-                  <button onClick={handleChat} disabled={!canChat || isChatting} className="bg-purple-600 text-white p-4 rounded-2xl hover:bg-purple-500 transition-all shadow-lg">
-                    <Send size={18}/>
-                  </button>
-                </div>
-             </div>
-          </div>
+                  <PreviewBlock label="System Prompt" content={data.isManualPromptEnabled ? data.customSystemPrompt : autoSystemPrompt} />
+                  <PreviewBlock label="RAG Knowledge" content={data.isCustomRagEnabled ? data.ragFile : autoRagContent} />
+               </div>
+            </div>
+          </aside>
         </div>
       </div>
-      <style jsx>{`
-        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.2); border-radius: 10px; }
-      `}</style>
     </div>
   );
 }
 
-// --- SUB-COMPONENTS ---
-const Section = ({ title, icon, badge, children }) => (
-  <div className="bg-white/5 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden group hover:border-purple-500/20 transition-all duration-500">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-4">
-        <div className="bg-purple-600/10 border border-purple-500/30 p-3 rounded-2xl text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-all duration-500 shadow-inner">
-          {icon}
-        </div>
-        <h3 className="text-xl font-black text-white uppercase tracking-tighter italic">{title}</h3>
+/* --- STANDALONE UI COMPONENTS --- */
+
+const GlassCard = ({ children }) => (
+  <div className="backdrop-blur-md bg-white/[0.05] border border-white/10 rounded-[2rem] p-6 hover:bg-white/[0.05] transition-all">
+    {children}
+  </div>
+);
+
+const PreviewBlock = ({ label, content }) => (
+  <div>
+    <label className="text-[9px] font-black text-indigo-400 uppercase block mb-3 tracking-widest">{label}</label>
+    <div className="text-[11px] font-mono leading-relaxed text-zinc-400 bg-black/40 p-5 rounded-[1.5rem] border border-white/5 h-48 overflow-y-auto">
+      {content || "Initializing Intelligence..."}
+    </div>
+  </div>
+);
+
+const Input = ({ label, value, onChange }) => (
+  <div className="flex flex-col gap-3">
+    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">{label}</label>
+    <input className="bg-transparent border border-white/10 rounded-2xl px-6 py-4 text-sm text-white outline-none focus:border-indigo-500/50 focus:bg-white/[0.02] transition-all" value={value} onChange={(e) => onChange(e.target.value)} />
+  </div>
+);
+
+const Textarea = ({ label, value, onChange, placeholder }) => (
+  <div className="flex flex-col gap-3">
+    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">{label}</label>
+    <textarea rows={4} placeholder={placeholder} className="bg-transparent border border-white/10 rounded-2xl px-6 py-5 text-sm text-white outline-none focus:border-indigo-500/50 focus:bg-white/[0.02] transition-all resize-none leading-relaxed" value={value} onChange={(e) => onChange(e.target.value)} />
+  </div>
+);
+
+const Select = ({ label, value, options, onChange }) => (
+  <div className="flex flex-col gap-3">
+    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">{label}</label>
+    <div className="relative">
+      <select className="w-full bg-transparent border border-white/10 rounded-2xl px-6 py-4 text-sm text-white outline-none focus:border-indigo-500/50 transition cursor-pointer appearance-none" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map(o => <option key={o.value} value={o.value} className="bg-zinc-950 text-white">{o.label}</option>)}
+      </select>
+      <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L5 5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </div>
-      {badge && <span className="text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg">{badge}</span>}
-    </div>
-    <div className="relative z-10">{children}</div>
-  </div>
-);
-
-const Input = ({ label, value, onChange, placeholder }) => (
-  <div className="w-full space-y-3">
-    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">{label}</label>
-    <div className="relative group">
-      <input type="text" value={value || ''} placeholder={placeholder} onChange={(e) => onChange(e.target.value)}
-        className="w-full p-4 bg-black/40 border border-white/10 rounded-2xl outline-none focus:border-purple-500/50 transition-all text-xs text-white font-bold uppercase tracking-widest placeholder:text-zinc-700" />
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20 group-focus-within:opacity-100 transition-opacity"><Terminal size={14} className="text-purple-500" /></div>
     </div>
   </div>
 );
 
-const Textarea = ({ label, value, onChange, placeholder, rows }) => (
-  <div className="w-full space-y-2">
-    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">{label}</label>
-    <div className="relative group">
-      <textarea rows={rows} value={value || ''} placeholder={placeholder} onChange={(e) => onChange(e.target.value)}
-        className="w-full p-6 bg-black/40 border border-white/10 rounded-[2rem] outline-none focus:border-purple-500/50 transition-all text-xs text-white font-medium leading-relaxed custom-scrollbar placeholder:text-zinc-700" />
-      <Database size={24} className="absolute right-6 bottom-6 text-purple-500 opacity-5 group-focus-within:opacity-20 transition-opacity" />
-    </div>
-  </div>
+const Toggle = ({ value, onChange }) => (
+  <button onClick={() => onChange(!value)} className={`w-10 h-5 rounded-full transition-all duration-300 ${value ? "bg-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.5)]" : "bg-white/10"}`}>
+    <div className={`h-3 w-3 bg-white rounded-full mx-1 transition-transform duration-300 ${value ? "translate-x-5" : "translate-x-0"}`} />
+  </button>
 );

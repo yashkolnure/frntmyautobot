@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
    Globe, Check, Loader2, Terminal, ShieldCheck, 
   Palette, Zap, Command, Cpu, Monitor,
   Laptop, Share2, Box
 } from 'lucide-react';
+import { getConfig } from '../../api';
 
 const CONFIG = {
   DOMAIN: window.location.origin,
@@ -63,11 +64,39 @@ const TECH_STACKS = {
   }
 };
 
-export default function DeploymentView({ userId }) {
-  const [copiedType, setCopiedType] = useState(null);
+export default function DeploymentView({ userId: propUserId }) {
+  // Use local state to manage the ID
+  const [userId, setUserId] = useState(propUserId);
   const [selectedTheme, setSelectedTheme] = useState(THEMES[0].id);
+  const [copiedType, setCopiedType] = useState(null);
   const [activeTech, setActiveTech] = useState('wordpress');
 
+  // SELF-HEALING: If Parent doesn't provide ID, fetch it from API
+  useEffect(() => {
+    if (!propUserId) {
+      const recoverId = async () => {
+        try {
+          const { data: res } = await getConfig();
+          if (res?.bot?._id) setUserId(res.bot._id);
+        } catch (e) {
+          console.error("Neural Link failed to retrieve ID");
+        }
+      };
+      recoverId();
+    } else {
+      setUserId(propUserId);
+    }
+  }, [propUserId]);
+// 5. DEFINE THE MISSING copyToClipboard function
+  const copyToClipboard = async (text, type) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedType(type);
+      setTimeout(() => setCopiedType(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
   const chatLink = useMemo(() => `${CONFIG.DOMAIN}/chat/${userId}?theme=${selectedTheme}`, [userId, selectedTheme]);
   const embedCode = useMemo(() => `<script>
   window.petobaBotId = "${userId}";
@@ -76,21 +105,15 @@ export default function DeploymentView({ userId }) {
 </script>
 <script src="${CONFIG.DOMAIN}${CONFIG.WIDGET_PATH}" async></script>`, [userId, selectedTheme]);
 
-  const copyToClipboard = async (text, type) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedType(type);
-      setTimeout(() => setCopiedType(null), 2000);
-    } catch (err) {}
-  };
-
+  // LOADING GUARD
   if (!userId) return (
     <div className="flex flex-col h-96 items-center justify-center text-slate-400">
       <Loader2 className="animate-spin mb-4" size={40} />
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] animate-pulse text-slate-500">Initializing Deployment...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] animate-pulse text-slate-500">
+        Waiting for Neural ID...
+      </p>
     </div>
   );
-
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700  mx-auto pb-20 px-4 md:px-0">
       

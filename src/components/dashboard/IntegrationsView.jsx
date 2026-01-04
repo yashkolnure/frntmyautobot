@@ -1,86 +1,77 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   MessageCircle, Instagram, Link, Copy, Check, Settings, 
-  Loader2, ShieldCheck, Linkedin, RefreshCw, Sparkles, Key, Info, ChevronDown, ChevronUp
+  Loader2, ShieldCheck, RefreshCw, Sparkles, Key, Info, 
+  ChevronDown, ChevronUp, Eye, EyeOff, Power, PowerOff
 } from 'lucide-react';
 import API from '../../api';
 
-// --- Sub-Component: Instructional Guide ---
-const ConnectionGuide = () => {
+// --- Sub-Component: Configuration Input ---
+const ConfigInput = ({ label, type, value, onChange, placeholder, isSensitive = false, disabled = false }) => {
+  const [showValue, setShowValue] = useState(false);
+  
   return (
-    <div className="mt-4 mb-10 space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* WhatsApp Guide */}
-        <div className="bg-black/40 p-6 rounded-[2rem] border border-emerald-500/20 backdrop-blur-md">
-          <h4 className="text-emerald-400 font-black text-xs uppercase mb-4 flex items-center gap-2 tracking-widest">
-            <MessageCircle size={16} /> WhatsApp Protocol
-          </h4>
-          <ul className="space-y-3 text-[11px] text-slate-400 font-bold tracking-wide">
-            <li className="flex gap-3"><span className="text-emerald-500 font-mono">01</span><span>Create a "Business" App at Meta Developers.</span></li>
-            <li className="flex gap-3"><span className="text-emerald-500 font-mono">02</span><span>Add "WhatsApp" product and copy the <b>Phone Number ID</b>.</span></li>
-            <li className="flex gap-3"><span className="text-emerald-500 font-mono">03</span><span>Generate a <b>Permanent Token</b> in System Users (Business Manager).</span></li>
-          </ul>
-        </div>
-
-        {/* Instagram Guide */}
-        <div className="bg-black/40 p-6 rounded-[2rem] border border-fuchsia-500/20 backdrop-blur-md">
-          <h4 className="text-fuchsia-400 font-black text-xs uppercase mb-4 flex items-center gap-2 tracking-widest">
-            <Instagram size={16} /> Instagram Protocol
-          </h4>
-          <ul className="space-y-3 text-[11px] text-slate-400 font-bold tracking-wide">
-            <li className="flex gap-3"><span className="text-fuchsia-500 font-mono">01</span><span>Connect Instagram Business to a Facebook Page.</span></li>
-            <li className="flex gap-3"><span className="text-fuchsia-500 font-mono">02</span><span>Add "Messenger/Instagram Graph API" to your Meta App.</span></li>
-            <li className="flex gap-3"><span className="text-fuchsia-500 font-mono">03</span><span>Copy <b>Instagram Business ID</b> from Page Settings.</span></li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="bg-purple-500/5 p-5 rounded-2xl border border-purple-500/20">
-        <p className="text-[10px] text-slate-400 uppercase font-black text-center tracking-[0.1em]">
-          Final Setup: Add the Webhook URL below to Meta "Webhooks" section & subscribe to <span className="text-purple-400">messages</span> field.
-        </p>
+    <div className={`relative group transition-opacity duration-300 ${disabled ? 'opacity-30' : 'opacity-100'}`}>
+      <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-[0.2em] ml-1">{label}</label>
+      <div className="relative">
+        <input 
+          type={isSensitive && !showValue ? "password" : "text"}
+          placeholder={disabled ? "Channel Disabled" : placeholder} 
+          disabled={disabled}
+          className={`w-full p-4 bg-black/40 border border-white/5 rounded-2xl text-sm text-purple-100 outline-none transition-all placeholder:text-slate-800 font-mono shadow-inner ${disabled ? 'cursor-not-allowed select-none' : 'focus:border-purple-500/50 focus:bg-black/60'}`} 
+          value={disabled ? "" : value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        {isSensitive && !disabled && (
+          <button 
+            type="button"
+            onClick={() => setShowValue(!showValue)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-purple-400 transition-colors"
+          >
+            {showValue ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        )}
       </div>
     </div>
   );
 };
 
-// --- Sub-Component: Configuration Input ---
-const ConfigInput = ({ label, type, value, onChange, placeholder }) => (
-  <div className="relative group">
-    <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-[0.2em] ml-1">{label}</label>
-    <input 
-      type={type}
-      placeholder={placeholder} 
-      className="w-full p-4 bg-black/40 border border-white/5 rounded-2xl text-sm text-purple-100 outline-none focus:border-purple-500/50 focus:bg-black/60 transition-all placeholder:text-slate-800 font-mono shadow-inner" 
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    />
-  </div>
-);
-
-// --- Sub-Component: Channel Status Card ---
-const ChannelCard = ({ title, icon, status, desc, onRetry, disabled }) => {
+// --- Sub-Component: Channel Status Card with Toggle Switch ---
+const ChannelCard = ({ title, icon, status, desc, onRetry, disabled, isActive, onToggle }) => {
   const statusStyles = {
     idle: "text-slate-500 bg-white/5 border-white/10",
     checking: "text-purple-400 bg-purple-500/10 border-purple-500/30",
     connected: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
-    failed: "text-red-400 bg-red-500/10 border-red-500/30"
+    failed: "text-red-400 bg-red-500/10 border-red-500/30",
+    disabled: "text-slate-600 bg-black/20 border-white/5"
   };
 
   return (
-    <div className={`bg-white/5 backdrop-blur-2xl p-6 rounded-[2.5rem] border transition-all duration-500 relative overflow-hidden ${disabled ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:-translate-y-1 hover:bg-white/[0.07]'} ${status === 'failed' ? 'border-red-500/30' : 'border-white/10'}`}>
+    <div className={`bg-white/5 backdrop-blur-2xl p-6 rounded-[2.5rem] border transition-all duration-500 relative overflow-hidden ${disabled ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:-translate-y-1'} ${!isActive ? 'border-white/5' : (status === 'failed' ? 'border-red-500/30' : 'border-white/10')}`}>
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
-          <div className="p-3 bg-black/20 rounded-2xl">{icon}</div>
-          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border backdrop-blur-md ${statusStyles[status]}`}>
-            {status === 'checking' ? <Loader2 size={10} className="animate-spin" /> : <div className={`w-1 h-1 rounded-full ${status === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-current'}`} />}
-            {status === 'connected' ? 'Uplink Active' : status === 'failed' ? 'Link Error' : status === 'checking' ? 'Syncing...' : 'Offline'}
-          </div>
+          <div className={`p-3 rounded-2xl transition-colors ${isActive ? 'bg-black/20' : 'bg-white/5'}`}>{icon}</div>
+          
+          {/* Visual Toggle Switch */}
+          {!disabled && (
+            <button 
+              onClick={onToggle}
+              className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none ${isActive ? 'bg-emerald-500' : 'bg-slate-700'}`}
+            >
+              <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 transform ${isActive ? 'translate-x-6' : 'translate-x-0'}`} />
+            </button>
+          )}
         </div>
+        
         <h4 className="font-black text-white mb-2 text-md uppercase tracking-tighter">{title}</h4>
         <p className="text-[10px] text-slate-500 leading-relaxed font-bold mb-4 tracking-tight">{desc}</p>
         
-        {status === 'failed' && !disabled && (
+        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest border mb-4 ${statusStyles[isActive ? status : 'disabled']}`}>
+           {status === 'checking' && isActive ? <Loader2 size={10} className="animate-spin" /> : <div className={`w-1 h-1 rounded-full ${status === 'connected' && isActive ? 'bg-emerald-500 animate-pulse' : 'bg-current'}`} />}
+           {isActive ? (status === 'connected' ? 'Uplink Active' : status === 'failed' ? 'Link Error' : 'Syncing...') : 'Hibernating'}
+        </div>
+
+        {status === 'failed' && isActive && !disabled && (
           <button onClick={onRetry} className="flex items-center gap-2 text-[9px] font-black uppercase text-purple-400 hover:text-purple-300 transition-colors">
             <RefreshCw size={10} /> Re-verify Node
           </button>
@@ -101,8 +92,10 @@ export default function IntegrationsView({ userId }) {
   const [config, setConfig] = useState({
     whatsappToken: '',
     phoneNumberId: '',
+    whatsappEnabled: false,
     instagramToken: '',
     instagramBusinessId: '',
+    instagramEnabled: false,
     verifyToken: '', 
   });
 
@@ -116,19 +109,20 @@ export default function IntegrationsView({ userId }) {
       setInitialLoading(true);
       const { data } = await API.get(`/bot/config`); 
       if (data) {
-        const loadedConfig = {
+        setConfig({
           whatsappToken: data.whatsappToken || '',
           phoneNumberId: data.phoneNumberId || '',
+          whatsappEnabled: data.whatsappEnabled ?? false,
           instagramToken: data.instagramToken || '',
           instagramBusinessId: data.instagramBusinessId || '',
+          instagramEnabled: data.instagramEnabled ?? false,
           verifyToken: data.verifyToken || '',
-        };
-        setConfig(loadedConfig);
-        if (loadedConfig.whatsappToken) verifyChannel('whatsapp', loadedConfig);
-        if (loadedConfig.instagramToken) verifyChannel('instagram', loadedConfig);
+        });
+        if (data.whatsappToken && data.whatsappEnabled) verifyChannel('whatsapp', data);
+        if (data.instagramToken && data.instagramEnabled) verifyChannel('instagram', data);
       }
     } catch (err) {
-      console.error("Neural Link Error:", err);
+      console.error("Neural Link Fetch Error:", err);
     } finally {
       setInitialLoading(false);
     }
@@ -137,31 +131,29 @@ export default function IntegrationsView({ userId }) {
   useEffect(() => { fetchConfig(); }, [fetchConfig]);
 
   const verifyChannel = async (platform, customConfig = config) => {
-  setConnectionStatus(prev => ({ ...prev, [platform]: 'checking' }));
-  try {
-    const targetId = platform === 'whatsapp' ? customConfig.phoneNumberId : customConfig.instagramBusinessId;
-    const rawToken = platform === 'whatsapp' ? customConfig.whatsappToken : customConfig.instagramToken;
+    if ((platform === 'whatsapp' && !customConfig.whatsappEnabled) || 
+        (platform === 'instagram' && !customConfig.instagramEnabled)) return;
 
-    // RULE: If the token contains asterisks, it's the masked version from the DB.
-    // Send 'null' so the backend knows to use the stored/encrypted token.
-    const tokenToSend = rawToken.includes('***') ? null : rawToken;
+    setConnectionStatus(prev => ({ ...prev, [platform]: 'checking' }));
+    try {
+      const targetId = platform === 'whatsapp' ? customConfig.phoneNumberId : customConfig.instagramBusinessId;
+      const rawToken = platform === 'whatsapp' ? customConfig.whatsappToken : customConfig.instagramToken;
+      const tokenToSend = rawToken.includes('***') ? null : rawToken;
 
-    const response = await API.post(`/bot/settings/verify`, {
-      platform,
-      id: targetId,
-      token: tokenToSend 
-    });
+      const response = await API.post(`/bot/settings/verify`, {
+        platform,
+        id: targetId,
+        token: tokenToSend 
+      });
 
-    if (response.data.valid) {
-      setConnectionStatus(prev => ({ ...prev, [platform]: 'connected' }));
-    } else {
+      setConnectionStatus(prev => ({ 
+        ...prev, 
+        [platform]: response.data.valid ? 'connected' : 'failed' 
+      }));
+    } catch (err) {
       setConnectionStatus(prev => ({ ...prev, [platform]: 'failed' }));
     }
-  } catch (err) {
-    console.error("Verification Trigger Error:", err);
-    setConnectionStatus(prev => ({ ...prev, [platform]: 'failed' }));
-  }
-};
+  };
 
   const handleSaveSettings = async () => {
     setLoading(true);
@@ -169,10 +161,8 @@ export default function IntegrationsView({ userId }) {
     try {
       await API.post(`/bot/settings/update`, config);
       setSaveStatus('success');
-      await Promise.all([
-        config.whatsappToken && verifyChannel('whatsapp'),
-        config.instagramToken && verifyChannel('instagram')
-      ]);
+      if (config.whatsappEnabled) verifyChannel('whatsapp');
+      if (config.instagramEnabled) verifyChannel('instagram');
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err) {
       setSaveStatus('error');
@@ -192,7 +182,7 @@ export default function IntegrationsView({ userId }) {
     return (
       <div className="flex flex-col items-center justify-center h-96 text-purple-400">
         <Loader2 className="animate-spin mb-4 text-purple-500" size={40} />
-        <p className="text-xs font-black uppercase tracking-[0.4em] animate-pulse">Synchronizing Neural Links...</p>
+        <p className="text-xs font-black uppercase tracking-[0.4em] animate-pulse">Scanning Neural Network...</p>
       </div>
     );
   }
@@ -200,13 +190,13 @@ export default function IntegrationsView({ userId }) {
   return (
     <div className="w-full mx-auto space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       
-      {/* HEADER */}
+      {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-white/5 pb-8">
         <div>
           <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic flex items-center gap-3">
             Integrations <Sparkles className="text-purple-500 w-6 h-6 animate-pulse" />
           </h2>
-          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Meta API & Uplink Configuration</p>
+          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Multi-Channel Bot Control Center</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
@@ -214,23 +204,16 @@ export default function IntegrationsView({ userId }) {
             className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl border border-white/10 transition-all text-[10px] font-black uppercase tracking-widest"
           >
             {showGuide ? <ChevronUp size={14}/> : <Info size={14}/>}
-            {showGuide ? "Hide Setup Guide" : "View Setup Guide"}
+            {showGuide ? "Minimize Docs" : "Integration Docs"}
           </button>
-          <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-purple-500/10 text-purple-400 rounded-xl border border-purple-500/30 backdrop-blur-md">
-            <ShieldCheck size={16} />
-            <span className="text-[9px] font-black uppercase tracking-widest">Encrypted Uplink</span>
-          </div>
         </div>
       </div>
 
-      {showGuide && <ConnectionGuide />}
-
-      {/* WEBHOOK / HANDSHAKE SECTION */}
+      {/* WEBHOOK SECTION */}
       <section className="bg-white/5 backdrop-blur-2xl p-8 rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
         <div className="flex items-center gap-3 mb-8 relative z-10">
           <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400"><Link size={20} /></div>
-          <h3 className="text-lg font-black text-white uppercase tracking-tight">Step 1: Handshake URL</h3>
+          <h3 className="text-lg font-black text-white uppercase tracking-tight">Step 1: Webhook Handshake</h3>
         </div>
         
         <div className="grid lg:grid-cols-5 gap-6 relative z-10">
@@ -245,12 +228,12 @@ export default function IntegrationsView({ userId }) {
           </div>
 
           <div className="lg:col-span-2 space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Verify Token (Custom Secret)</label>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Verify Token (Secret Key)</label>
             <div className="relative">
               <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
               <input 
                 type="text"
-                placeholder="Ex: my_secret_node_123"
+                placeholder="Ex: my_secure_secret_123"
                 value={config.verifyToken}
                 onChange={(e) => setConfig({...config, verifyToken: e.target.value})}
                 className="w-full bg-black/40 border border-white/10 p-4 pl-12 rounded-2xl text-xs font-mono text-white outline-none focus:border-purple-500/50"
@@ -260,28 +243,32 @@ export default function IntegrationsView({ userId }) {
         </div>
       </section>
 
-      {/* STATUS CARDS */}
+      {/* STATUS CARDS WITH TOGGLES */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <ChannelCard 
-          title="WhatsApp Business" 
+          title="WhatsApp Cloud" 
           icon={<MessageCircle size={24} className="text-emerald-400" />} 
           status={connectionStatus.whatsapp}
-          desc="AI automated replies for Cloud API nodes."
+          isActive={config.whatsappEnabled}
+          onToggle={() => setConfig({...config, whatsappEnabled: !config.whatsappEnabled})}
+          desc="Automate business chats via official Meta Cloud API."
           onRetry={() => verifyChannel('whatsapp')}
         />
         <ChannelCard 
-          title="Instagram DMs" 
+          title="Instagram DM" 
           icon={<Instagram size={24} className="text-fuchsia-400" />} 
           status={connectionStatus.instagram}
-          desc="Direct message automation via Graph API."
+          isActive={config.instagramEnabled}
+          onToggle={() => setConfig({...config, instagramEnabled: !config.instagramEnabled})}
+          desc="AI responses for Instagram Business DMs & Stories."
           onRetry={() => verifyChannel('instagram')}
         />
         <ChannelCard 
-          title="LinkedIn B2B" 
-          icon={<Linkedin size={24} className="text-blue-400" />} 
+          title="LinkedIn AI" 
           status="idle" 
-          desc="Enterprise automation (Coming Soon)."
+          desc="Coming Soon: B2B lead generation & auto-pilot."
           disabled
+          isActive={false}
         />
       </div>
 
@@ -289,47 +276,73 @@ export default function IntegrationsView({ userId }) {
       <section className="bg-white/5 backdrop-blur-2xl p-8 rounded-[3.5rem] border border-white/10 shadow-2xl relative">
         <div className="flex items-center gap-3 mb-10">
           <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400"><Settings size={20} /></div>
-          <h3 className="text-lg font-black text-white uppercase tracking-tight">Step 2: Credential Uplink</h3>
+          <h3 className="text-lg font-black text-white uppercase tracking-tight">Step 2: Credential Configuration</h3>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
-          {/* WhatsApp */}
+          {/* WhatsApp Config */}
           <div className="space-y-6">
             <h4 className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">
-              <MessageCircle size={14}/> WhatsApp Node
+              <MessageCircle size={14}/> WhatsApp Node Settings
             </h4>
             <div className="space-y-5">
-              <ConfigInput label="Access Token" type="password" value={config.whatsappToken} onChange={(v) => setConfig({...config, whatsappToken: v})} placeholder="EAAG..." />
-              <ConfigInput label="Phone Number ID" type="text" value={config.phoneNumberId} onChange={(v) => setConfig({...config, phoneNumberId: v})} placeholder="1029..." />
+              <ConfigInput 
+                isSensitive 
+                disabled={!config.whatsappEnabled}
+                label="Permanent Access Token" 
+                value={config.whatsappToken} 
+                onChange={(v) => setConfig({...config, whatsappToken: v})} 
+                placeholder="EAAG..." 
+              />
+              <ConfigInput 
+                disabled={!config.whatsappEnabled}
+                label="Phone Number ID" 
+                value={config.phoneNumberId} 
+                onChange={(v) => setConfig({...config, phoneNumberId: v})} 
+                placeholder="1029..." 
+              />
             </div>
           </div>
 
-          {/* Instagram */}
+          {/* Instagram Config */}
           <div className="space-y-6">
             <h4 className="flex items-center gap-2 text-[10px] font-black text-fuchsia-400 uppercase tracking-[0.3em]">
-              <Instagram size={14}/> Instagram Node
+              <Instagram size={14}/> Instagram Node Settings
             </h4>
             <div className="space-y-5">
-              <ConfigInput label="Access Token" type="password" value={config.instagramToken} onChange={(v) => setConfig({...config, instagramToken: v})} placeholder="EAAG..." />
-              <ConfigInput label="Business ID" type="text" value={config.instagramBusinessId} onChange={(v) => setConfig({...config, instagramBusinessId: v})} placeholder="1784..." />
+              <ConfigInput 
+                isSensitive 
+                disabled={!config.instagramEnabled}
+                label="Graph Access Token" 
+                value={config.instagramToken} 
+                onChange={(v) => setConfig({...config, instagramToken: v})} 
+                placeholder="EAAG..." 
+              />
+              <ConfigInput 
+                disabled={!config.instagramEnabled}
+                label="Instagram Business ID" 
+                value={config.instagramBusinessId} 
+                onChange={(v) => setConfig({...config, instagramBusinessId: v})} 
+                placeholder="1784..." 
+              />
             </div>
           </div>
         </div>
 
+        {/* SAVE ACTION */}
         <div className="flex flex-col sm:flex-row items-center gap-6 pt-10 mt-10 border-t border-white/5">
           <button 
             onClick={handleSaveSettings}
             disabled={loading}
-            className="w-full sm:w-auto bg-purple-600 text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-purple-500 transition-all shadow-[0_0_40px_rgba(168,85,247,0.2)] flex items-center justify-center gap-3 disabled:opacity-50 active:scale-95"
+            className="w-full sm:w-auto bg-purple-600 text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-purple-500 transition-all shadow-[0_0_40px_rgba(168,85,247,0.2)] flex items-center justify-center gap-3 disabled:opacity-50"
           >
             {loading ? <Loader2 className="animate-spin" size={20}/> : <ShieldCheck size={20}/>}
-            {loading ? "Syncing Nodes..." : "Activate & Verify Uplink"}
+            {loading ? "Committing Changes..." : "Deploy Configuration"}
           </button>
 
           {saveStatus === 'success' && (
-            <div className="flex items-center gap-3 text-emerald-400 font-black text-[10px] uppercase tracking-widest animate-in fade-in zoom-in">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-              Configurations Synchronized
+            <div className="flex items-center gap-3 text-emerald-400 font-black text-[10px] uppercase tracking-widest animate-in slide-in-from-left-2">
+              <Check size={16} /> Data Secured & Uplinked
             </div>
           )}
         </div>

@@ -9,7 +9,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, userTokens 
     <aside className="h-full w-full bg-black/60 lg:bg-black/40 backdrop-blur-3xl border-r border-white/5 flex flex-col p-4 lg:p-4 overflow-y-auto custom-scrollbar relative">
 
       {/* 🤖 BRANDING */}
-      <div className="flex items-center gap-3 mb-6 mt-4 lg:mb-8 px-2 group cursor-pointer" onClick={() => setActiveTab('training')}>
+      <div className="flex items-center gap-3 mb-6 mt-4 lg:mb-8 px-2 group cursor-pointer"  onClick={() => setActiveTab('training')}>
         <div className="bg-purple-600 p-2 rounded-xl text-white shadow-[0_0_20px_rgba(168,85,247,0.6)] group-hover:scale-110 transition-transform duration-500">
           <Bot size={22} />
         </div>
@@ -39,13 +39,13 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, userTokens 
         
         <SidebarItem 
           icon={<Users size={20}/>} 
-          label="Intelligence" 
+          label="Leads Monitor" 
           active={activeTab === 'leads'} 
           onClick={() => setActiveTab('leads')}
         />
         <SidebarItem 
           icon={<MessageSquare size={20}/>} 
-          label="Neural Logs" 
+          label="Chat History" 
           active={activeTab === 'history'}
           onClick={() => setActiveTab('history')}
         />
@@ -53,7 +53,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, userTokens 
 
         <SidebarItem 
           icon={<Settings size={20}/>} 
-          label="Integrations (BETA)" 
+          label="Socials (BETA)" 
           active={activeTab === 'integrations'}
           onClick={() => setActiveTab('integrations')}
         />
@@ -124,7 +124,7 @@ function SidebarItem({ icon, label, active, onClick }) {
       className={`relative group flex items-center gap-3 p-3.5 lg:p-3 rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden ${
         active 
           ? 'bg-purple-600 text-white shadow-[0_10px_30px_-10px_rgba(168,85,247,0.5)] scale-[1.02]' 
-          : 'text-slate-500 hover:text-slate-200 hover:bg-white/5'
+          : 'text-slate-200 hover:text-slate-100 hover:bg-white/5'
       }`}
     >
       {active && (

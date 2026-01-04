@@ -16,6 +16,7 @@ import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import HelpCenter from './pages/HelpCenter';
 import APIDocs from './pages/APIDocs';
+import ChatbotPage from './pages/ChatbotPage';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import SuperAdmin from './pages/SuperAdmin';
@@ -34,6 +35,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/chatbot" element={<ChatbotPage />} />
           <Route path="/chat/:botId" element={<PublicChat />} />
           
           {/* Company & Support Pages */}

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // --- INITIALIZATION ---
-const API = axios.create({ baseURL: 'http://localhost:5000/api' });
+const API = axios.create({ baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api' });
 
 // --- REQUEST INTERCEPTOR (JWT Injection) ---
 API.interceptors.request.use((req) => {
@@ -20,26 +20,35 @@ export const resetPassword = (token, password) => API.post(`/auth/reset-password
 
 // --- BOT CONFIGURATION & CREDITS ---
 export const getConfig = () => API.get('/bot/config');
-export const saveConfig = (configData) => API.post('/bot/configure', configData);
+export const saveConfig = (configData) => API.post('/bot/save', configData);
 
 // --- INTEGRATION SETTINGS ---
 export const verifyIntegration = (platform, id, token) => API.post('/bot/settings/verify', { platform, id, token }); 
 export const updateIntegration = (settings) => API.post('/bot/settings/update', settings);
 
-// --- CHAT & NEURAL INTERFACE ---
-// Deducts 5 tokens (used in Dashboard/TrainingView)
-export const sendDebugMessage = (message) => API.post('/bot/chat/debug', { message });
+// --- CHAT & NEURAL INTERFACE (For Dashboard Testing) ---
+// Accepts message + current UI prompt so users can test before saving
+export const sendDebugMessage = (message, activePrompt) => 
+  API.post('/bot/chat/debug', { message, activePrompt });
 
-// General/Public Chat routes
+// --- PUBLIC CHAT ROUTES (Used in PublicChat.jsx) ---
+export const getPublicBotInfo = (botId) => 
+  API.get(`/chat/public-info/${botId}`);
+
+export const sendPublicMessage = (botId, message, customerIdentifier, customerData) => 
+  API.post(`/chat/public-message/${botId}`, { 
+      message, 
+      customerIdentifier, // e.g., "John Doe (john@example.com)"
+      customerData        // e.g., { name: "John Doe", email: "john@example.com" }
+  });
+
+// --- GENERAL CHAT HISTORY ---
 export const sendMessage = (message) => API.post('/chat/message', { message });
 export const getHistory = () => API.get('/chat/history');
-export const getPublicBotInfo = (botId) => API.get(`/chat/public-info/${botId}`);
-export const sendPublicMessage = (botId, message, customerIdentifier, customerData) => 
-    API.post(`/chat/public-message/${botId}`, { 
-        message, 
-        customerIdentifier, // Combined Name + Email
-        customerData        // Object { name, email }
-    });
+
+// --- BILLING & PAYMENTS ---
+export const createCheckoutSession = (planId) => API.post('/billing/create-checkout', { planId });
+export const verifyPayment = (sessionId) => API.post('/billing/verify-payment', { sessionId });
 
 // --- LEADS MANAGEMENT ---
 export const getLeads = () => API.get('/leads');
