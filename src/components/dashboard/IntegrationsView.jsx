@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   MessageCircle, Instagram, Link, Copy, Check, Settings, 
   Loader2, ShieldCheck, RefreshCw, Sparkles, Key, Info, 
-  ChevronDown, ChevronUp, Eye, EyeOff, Power, PowerOff
+  ChevronDown, ChevronUp, Eye, EyeOff, Power, PowerOff,
+  Facebook // Added for the button icon
 } from 'lucide-react';
 import API from '../../api';
 
@@ -36,7 +37,7 @@ const ConfigInput = ({ label, type, value, onChange, placeholder, isSensitive = 
   );
 };
 
-// --- Sub-Component: Channel Status Card with Toggle Switch ---
+// --- Sub-Component: Channel Status Card ---
 const ChannelCard = ({ title, icon, status, desc, onRetry, disabled, isActive, onToggle }) => {
   const statusStyles = {
     idle: "text-slate-500 bg-white/5 border-white/10",
@@ -51,8 +52,6 @@ const ChannelCard = ({ title, icon, status, desc, onRetry, disabled, isActive, o
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
           <div className={`p-3 rounded-2xl transition-colors ${isActive ? 'bg-black/20' : 'bg-white/5'}`}>{icon}</div>
-          
-          {/* Visual Toggle Switch */}
           {!disabled && (
             <button 
               onClick={onToggle}
@@ -62,15 +61,12 @@ const ChannelCard = ({ title, icon, status, desc, onRetry, disabled, isActive, o
             </button>
           )}
         </div>
-        
         <h4 className="font-black text-white mb-2 text-md uppercase tracking-tighter">{title}</h4>
         <p className="text-[10px] text-slate-500 leading-relaxed font-bold mb-4 tracking-tight">{desc}</p>
-        
         <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest border mb-4 ${statusStyles[isActive ? status : 'disabled']}`}>
            {status === 'checking' && isActive ? <Loader2 size={10} className="animate-spin" /> : <div className={`w-1 h-1 rounded-full ${status === 'connected' && isActive ? 'bg-emerald-500 animate-pulse' : 'bg-current'}`} />}
            {isActive ? (status === 'connected' ? 'Uplink Active' : status === 'failed' ? 'Link Error' : 'Syncing...') : 'Hibernating'}
         </div>
-
         {status === 'failed' && isActive && !disabled && (
           <button onClick={onRetry} className="flex items-center gap-2 text-[9px] font-black uppercase text-purple-400 hover:text-purple-300 transition-colors">
             <RefreshCw size={10} /> Re-verify Node
@@ -103,6 +99,47 @@ export default function IntegrationsView({ userId }) {
     whatsapp: 'idle',
     instagram: 'idle'
   });
+
+  // --- Initialize Meta SDK ---
+  useEffect(() => {
+    window.fbAsyncInit = function() {
+      window.FB.init({
+        appId            : '900824542624488',
+        autoLogAppEvents : true,
+        xfbml            : true,
+        version          : 'v24.0'
+      });
+    };
+
+    (function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "https://connect.facebook.net/en_US/sdk.js";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+  }, []);
+
+  // --- Launch Embedded Signup ---
+  const launchWhatsAppSignup = () => {
+    if (!window.FB) return alert("Meta SDK not loaded yet.");
+    
+    window.FB.login((response) => {
+      if (response.authResponse) {
+        const code = response.authResponse.code;
+        // Redirect to your backend callback with the code
+        window.location.href = `https://myautobot.in/api/auth/callback?code=${code}`;
+      }
+    }, {
+      config_id: '1510513603582692', // Your official Configuration ID
+      response_type: 'code',
+      override_default_response_type: true,
+      extras: {
+        feature: 'whatsapp_embedded_signup',
+        version: 'v3'
+      }
+    });
+  };
 
   const fetchConfig = useCallback(async () => {
     try {
@@ -282,9 +319,29 @@ export default function IntegrationsView({ userId }) {
         <div className="grid lg:grid-cols-2 gap-12">
           {/* WhatsApp Config */}
           <div className="space-y-6">
-            <h4 className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">
-              <MessageCircle size={14}/> WhatsApp Node Settings
+            <h4 className="flex items-center justify-between text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">
+              <span className="flex items-center gap-2"><MessageCircle size={14}/> WhatsApp Node Settings</span>
             </h4>
+
+            {/* 1-CLICK CONNECT BUTTON */}
+            <div className={`p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] transition-opacity duration-300 ${!config.whatsappEnabled ? 'opacity-30 grayscale pointer-events-none' : 'opacity-100'}`}>
+               <p className="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-widest text-center">SaaS Quick Connect (Recommended)</p>
+               <button 
+                 onClick={launchWhatsAppSignup}
+                 className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-xl"
+               >
+                 <Facebook size={16} className="text-[#1877F2]" />
+                 Connect with Facebook
+               </button>
+               <p className="text-[8px] text-slate-500 mt-4 text-center italic">One-click setup for Cloud API & Webhooks</p>
+            </div>
+
+            <div className="relative flex items-center gap-4 my-4">
+               <div className="flex-1 h-[1px] bg-white/5"></div>
+               <span className="text-[8px] font-black text-slate-700 uppercase">Or Manual Entry</span>
+               <div className="flex-1 h-[1px] bg-white/5"></div>
+            </div>
+
             <div className="space-y-5">
               <ConfigInput 
                 isSensitive 
@@ -309,6 +366,7 @@ export default function IntegrationsView({ userId }) {
             <h4 className="flex items-center gap-2 text-[10px] font-black text-fuchsia-400 uppercase tracking-[0.3em]">
               <Instagram size={14}/> Instagram Node Settings
             </h4>
+            {/* Note: You can add a similar "Connect" button for Instagram here later */}
             <div className="space-y-5">
               <ConfigInput 
                 isSensitive 

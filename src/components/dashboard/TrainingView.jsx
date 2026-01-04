@@ -12,7 +12,7 @@ export default function BotEngine() {
   const [tokens, setTokens] = useState(0);
 
   // Set this to your VPS production domain or local development IP
-  const API_BASE_URL = "/api/bot"; 
+  const API_BASE_URL = "http://localhost:5000/api/bot"; 
 
   /* -------------------------------------------------------------------------- */
   /* 1. NEURAL LINK: DATA HYDRATION                                            */
@@ -271,6 +271,7 @@ OPERATING CONSTRAINTS:
           </section>
 
           {/* PROMPT CONTROL */}
+          
           <section className="backdrop-blur-md bg-white/[0.05] border border-white/5 rounded-[3rem] p-10 space-y-8">
             <div className="flex justify-between items-center">
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500">Intelligence Control</h2>
