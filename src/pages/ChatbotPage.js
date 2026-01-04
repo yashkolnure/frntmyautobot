@@ -6,7 +6,7 @@ export default function BotEngine() {
   const [isSaving, setIsSaving] = useState(false);
   const [tokens, setTokens] = useState(0);
 
-  const API_BASE_URL = "http://localhost:5000/api/bot"; // Update this for production
+  const API_BASE_URL = "/api/bot"; // Update this for production
 
   // --- 1. INITIAL DATA FETCH ---
   useEffect(() => {
