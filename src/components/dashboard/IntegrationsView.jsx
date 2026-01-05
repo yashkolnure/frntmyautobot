@@ -10,9 +10,6 @@ import {
   ShieldCheck,
   RefreshCw,
   Sparkles,
-  Key,
-  Info,
-  ChevronUp,
   Facebook
 } from "lucide-react";
 import API from "../../api";
@@ -27,25 +24,21 @@ const ConfigInput = ({
   placeholder,
   isSensitive = false,
   disabled = false
-}) => {
-  const [showValue, setShowValue] = useState(false);
-
-  return (
-    <div className={`transition-opacity ${disabled ? "opacity-30" : ""}`}>
-      <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">
-        {label}
-      </label>
-      <input
-        type={isSensitive && !showValue ? "password" : "text"}
-        value={disabled ? "" : value}
-        disabled={disabled}
-        placeholder={disabled ? "Channel Disabled" : placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 text-purple-200 font-mono text-xs outline-none focus:border-purple-500"
-      />
-    </div>
-  );
-};
+}) => (
+  <div className={`transition-opacity ${disabled ? "opacity-30" : ""}`}>
+    <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">
+      {label}
+    </label>
+    <input
+      type={isSensitive ? "password" : "text"}
+      value={disabled ? "" : value}
+      disabled={disabled}
+      placeholder={disabled ? "Channel Disabled" : placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 text-purple-200 font-mono text-xs outline-none focus:border-purple-500"
+    />
+  </div>
+);
 
 /* ---------------------------------------------
    CHANNEL CARD
@@ -57,7 +50,6 @@ const ChannelCard = ({
   status,
   isActive,
   onToggle,
-  onRetry,
   disabled
 }) => {
   const colorMap = {
@@ -102,15 +94,6 @@ const ChannelCard = ({
       >
         {isActive ? status : "disabled"}
       </div>
-
-      {status === "failed" && isActive && (
-        <button
-          onClick={onRetry}
-          className="mt-3 flex items-center gap-1 text-purple-400 text-[9px] font-black uppercase"
-        >
-          <RefreshCw size={10} /> Retry
-        </button>
-      )}
     </div>
   );
 };
@@ -129,18 +112,11 @@ export default function IntegrationsView({ userId }) {
     verifyToken: "myautobot_webhook_token_2025fdcs"
   });
 
-  const [status, setStatus] = useState({
-    whatsapp: "idle",
-    instagram: "idle"
-  });
-
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  /* ---------------------------------------------
-     CONSTANTS (NO TRAILING SLASH)
-  --------------------------------------------- */
+  /** ONE canonical redirect URI (NO trailing slash) */
   const REDIRECT_URI = "https://myautobot.in/api/auth/callback";
 
   /* ---------------------------------------------
@@ -181,7 +157,7 @@ export default function IntegrationsView({ userId }) {
   }, [fetchConfig]);
 
   /* ---------------------------------------------
-     SIGNUP FLOWS
+     EMBEDDED SIGNUP (NO redirect_uri HERE)
   --------------------------------------------- */
   const launchSignup = (platform, configId) => {
     if (!window.FB) return alert("Meta SDK not loaded");
@@ -189,13 +165,15 @@ export default function IntegrationsView({ userId }) {
     window.FB.login(
       (response) => {
         if (response.authResponse?.code) {
-          window.location.href = `${REDIRECT_URI}?platform=${platform}&code=${response.authResponse.code}`;
+          window.location.href =
+            `${REDIRECT_URI}?platform=${platform}&code=${response.authResponse.code}`;
         }
       },
       {
         config_id: configId,
         response_type: "code",
         override_default_response_type: true
+        // ❌ NO redirect_uri here
       }
     );
   };
@@ -208,14 +186,15 @@ export default function IntegrationsView({ userId }) {
     try {
       await API.post("/bot/settings/update", config);
       alert("Configuration saved");
-    } catch (e) {
+    } catch {
       alert("Save failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const webhookUrl = `${window.location.origin}/api/webhooks/meta?botId=${userId}`;
+  const webhookUrl =
+    `${window.location.origin}/api/webhooks/meta?botId=${userId}`;
 
   const copyText = (text) => {
     navigator.clipboard.writeText(text);
@@ -238,11 +217,9 @@ export default function IntegrationsView({ userId }) {
     <div className="space-y-10 pb-20 animate-in fade-in">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-black text-white uppercase flex items-center gap-2">
-          Integrations <Sparkles className="text-purple-500" />
-        </h2>
-      </div>
+      <h2 className="text-2xl font-black text-white uppercase flex items-center gap-2">
+        Integrations <Sparkles className="text-purple-500" />
+      </h2>
 
       {/* WEBHOOK */}
       <section className="p-8 rounded-[3rem] bg-white/5 border border-white/10">
@@ -282,24 +259,22 @@ export default function IntegrationsView({ userId }) {
           title="WhatsApp Cloud"
           icon={<MessageCircle className="text-emerald-400" />}
           desc="Official Meta WhatsApp Cloud API"
-          status={status.whatsapp}
           isActive={config.whatsappEnabled}
+          status="idle"
           onToggle={() =>
             setConfig((c) => ({ ...c, whatsappEnabled: !c.whatsappEnabled }))
           }
-          onRetry={() => {}}
         />
 
         <ChannelCard
           title="Instagram DM"
           icon={<Instagram className="text-fuchsia-400" />}
           desc="AI replies for Instagram Business DMs"
-          status={status.instagram}
           isActive={config.instagramEnabled}
+          status="idle"
           onToggle={() =>
             setConfig((c) => ({ ...c, instagramEnabled: !c.instagramEnabled }))
           }
-          onRetry={() => {}}
         />
 
         <ChannelCard
@@ -312,25 +287,21 @@ export default function IntegrationsView({ userId }) {
 
       {/* CONNECT BUTTONS */}
       <section className="grid md:grid-cols-2 gap-8">
-        <div className="p-6 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20">
-          <button
-            onClick={() => launchSignup("whatsapp", "1510513603582692")}
-            className="w-full bg-white text-black py-4 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2"
-          >
-            <Facebook className="text-[#1877F2]" size={16} />
-            Connect WhatsApp
-          </button>
-        </div>
+        <button
+          onClick={() => launchSignup("whatsapp", "1510513603582692")}
+          className="bg-white text-black py-4 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2"
+        >
+          <Facebook className="text-[#1877F2]" size={16} />
+          Connect WhatsApp
+        </button>
 
-        <div className="p-6 rounded-[2rem] bg-fuchsia-500/10 border border-fuchsia-500/20">
-          <button
-            onClick={() => launchSignup("instagram", "1418243342982885")}
-            className="w-full bg-white text-black py-4 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2"
-          >
-            <Instagram className="text-[#E4405F]" size={16} />
-            Connect Instagram
-          </button>
-        </div>
+        <button
+          onClick={() => launchSignup("instagram", "1418243342982885")}
+          className="bg-white text-black py-4 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2"
+        >
+          <Instagram className="text-[#E4405F]" size={16} />
+          Connect Instagram
+        </button>
       </section>
 
       {/* SAVE */}
