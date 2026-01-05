@@ -192,6 +192,26 @@ export default function IntegrationsView({ userId }) {
     }
   };
 
+  const launchInstagramSignup = () => {
+  if (!window.FB) return alert("Meta SDK not loaded.");
+
+  window.FB.login((response) => {
+    if (response.authResponse) {
+      const code = response.authResponse.code;
+      // Send to your backend with a platform flag
+      window.location.href = `https://myautobot.in/api/auth/callback?platform=instagram&code=${code}`;
+    }
+  }, {
+    config_id: '1510513603582692', // Use the ID from your screenshot
+    response_type: 'code',
+    override_default_response_type: true,
+    extras: {
+      feature: 'instagram_messaging', // Specific feature for IG DMs
+      version: 'v3'
+    }
+  });
+};
+
   const handleSaveSettings = async () => {
     setLoading(true);
     setSaveStatus(null);
@@ -367,6 +387,17 @@ export default function IntegrationsView({ userId }) {
               <Instagram size={14}/> Instagram Node Settings
             </h4>
             {/* Note: You can add a similar "Connect" button for Instagram here later */}
+            <div className={`p-6 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-[2rem] transition-all ${!config.instagramEnabled ? 'opacity-30 grayscale' : 'opacity-100'}`}>
+  <p className="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-widest text-center">Cloud Sync (Recommended)</p>
+  <button 
+    onClick={launchInstagramSignup}
+    className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-fuchsia-50 transition-all shadow-xl"
+  >
+    <Instagram size={16} className="text-[#E4405F]" />
+    Connect Instagram DMs
+  </button>
+  <p className="text-[8px] text-slate-500 mt-4 text-center italic">One-click link for Business DMs</p>
+</div>
             <div className="space-y-5">
               <ConfigInput 
                 isSensitive 
