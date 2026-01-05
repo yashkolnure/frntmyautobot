@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   MessageCircle, Instagram, Link, Copy, Check, Settings, 
   Loader2, ShieldCheck, RefreshCw, Sparkles, Key, Info, 
-  ChevronDown, ChevronUp, Eye, EyeOff, Power, PowerOff,
-  Facebook
+  ChevronUp, Facebook 
 } from 'lucide-react';
 import API from '../../api';
 
@@ -23,15 +22,6 @@ const ConfigInput = ({ label, value, onChange, placeholder, isSensitive = false,
           value={disabled ? "" : value}
           onChange={(e) => onChange(e.target.value)}
         />
-        {isSensitive && !disabled && (
-          <button 
-            type="button"
-            onClick={() => setShowValue(!showValue)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-purple-400 transition-colors"
-          >
-            {showValue ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-        )}
       </div>
     </div>
   );
@@ -100,6 +90,8 @@ export default function IntegrationsView({ userId }) {
     instagram: 'idle'
   });
 
+  const REDIRECT_URI = 'https://myautobot.in/api/auth/callback';
+
   // --- Initialize Meta SDK ---
   useEffect(() => {
     window.fbAsyncInit = function() {
@@ -125,30 +117,27 @@ export default function IntegrationsView({ userId }) {
     if (!window.FB) return alert("Meta SDK not loaded yet.");
     window.FB.login((response) => {
       if (response.authResponse) {
-        const code = response.authResponse.code;
-        window.location.href = `https://myautobot.in/api/auth/callback?platform=whatsapp&code=${code}`;
+        window.location.href = `${REDIRECT_URI}?platform=whatsapp&code=${response.authResponse.code}`;
       }
     }, {
-      config_id: '1510513603582692', // Audited Config ID
+      config_id: '1510513603582692', // Unified WhatsApp/Business Config
       response_type: 'code',
+      redirect_uri: REDIRECT_URI,
       override_default_response_type: true
     });
   };
 
-  // --- Launch One-Click Signup (Instagram) ---
-// --- Updated Instagram-Only Signup ---
+  // --- Launch One-Click Signup (Instagram Dedicated) ---
   const launchInstagramSignup = () => {
     if (!window.FB) return alert("Meta SDK not loaded.");
-    
     window.FB.login((response) => {
       if (response.authResponse) {
-        const code = response.authResponse.code;
-        // We add a 'platform' flag so the backend knows which discovery path to take
-        window.location.href = `https://myautobot.in/api/auth/callback?platform=instagram&code=${code}`;
+        window.location.href = `${REDIRECT_URI}?platform=instagram&code=${response.authResponse.code}`;
       }
     }, {
-      config_id: '1418243342982885', // Your NEW Instagram-only Config ID
+      config_id: '1418243342982885', // NEW Dedicated Instagram Config
       response_type: 'code',
+      redirect_uri: REDIRECT_URI,
       override_default_response_type: true
     });
   };
@@ -158,15 +147,7 @@ export default function IntegrationsView({ userId }) {
       setInitialLoading(true);
       const { data } = await API.get(`/bot/config`); 
       if (data) {
-        setConfig({
-          whatsappToken: data.whatsappToken || '',
-          phoneNumberId: data.phoneNumberId || '',
-          whatsappEnabled: data.whatsappEnabled ?? false,
-          instagramToken: data.instagramToken || '',
-          instagramBusinessId: data.instagramBusinessId || '',
-          instagramEnabled: data.instagramEnabled ?? false,
-          verifyToken: data.verifyToken || 'myautobot_webhook_token_2025fdcs',
-        });
+        setConfig(prev => ({ ...prev, ...data }));
         if (data.whatsappToken && data.whatsappEnabled) verifyChannel('whatsapp', data);
         if (data.instagramToken && data.instagramEnabled) verifyChannel('instagram', data);
       }
@@ -180,19 +161,15 @@ export default function IntegrationsView({ userId }) {
   useEffect(() => { fetchConfig(); }, [fetchConfig]);
 
   const verifyChannel = async (platform, customConfig = config) => {
-    if ((platform === 'whatsapp' && !customConfig.whatsappEnabled) || 
-        (platform === 'instagram' && !customConfig.instagramEnabled)) return;
-
     setConnectionStatus(prev => ({ ...prev, [platform]: 'checking' }));
     try {
       const targetId = platform === 'whatsapp' ? customConfig.phoneNumberId : customConfig.instagramBusinessId;
       const rawToken = platform === 'whatsapp' ? customConfig.whatsappToken : customConfig.instagramToken;
-      const tokenToSend = rawToken.includes('***') ? null : rawToken;
-
+      
       const response = await API.post(`/bot/settings/verify`, {
         platform,
         id: targetId,
-        token: tokenToSend 
+        token: rawToken.includes('***') ? null : rawToken
       });
 
       setConnectionStatus(prev => ({ 
@@ -210,8 +187,6 @@ export default function IntegrationsView({ userId }) {
     try {
       await API.post(`/bot/settings/update`, config);
       setSaveStatus('success');
-      if (config.whatsappEnabled) verifyChannel('whatsapp');
-      if (config.instagramEnabled) verifyChannel('instagram');
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err) {
       setSaveStatus('error');
@@ -248,10 +223,7 @@ export default function IntegrationsView({ userId }) {
           <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Multi-Channel Bot Control Center</p>
         </div>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setShowGuide(!showGuide)}
-            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl border border-white/10 transition-all text-[10px] font-black uppercase tracking-widest"
-          >
+          <button onClick={() => setShowGuide(!showGuide)} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-widest">
             {showGuide ? <ChevronUp size={14}/> : <Info size={14}/>}
             {showGuide ? "Minimize Docs" : "Integration Docs"}
           </button>
@@ -259,18 +231,18 @@ export default function IntegrationsView({ userId }) {
       </div>
 
       {/* WEBHOOK SECTION */}
-      <section className="bg-white/5 backdrop-blur-2xl p-8 rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden group">
-        <div className="flex items-center gap-3 mb-8 relative z-10">
+      <section className="bg-white/5 backdrop-blur-2xl p-8 rounded-[3rem] border border-white/10 shadow-2xl relative">
+        <div className="flex items-center gap-3 mb-8">
           <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400"><Link size={20} /></div>
           <h3 className="text-lg font-black text-white uppercase tracking-tight">Step 1: Webhook Handshake</h3>
         </div>
         
-        <div className="grid lg:grid-cols-5 gap-6 relative z-10">
+        <div className="grid lg:grid-cols-5 gap-6">
           <div className="lg:col-span-3 space-y-2">
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Meta Callback URL</label>
             <div className="flex gap-2">
               <input readOnly value={webhookUrl} className="flex-1 bg-black/40 border border-white/5 p-4 rounded-2xl text-[10px] font-mono text-purple-300 outline-none" />
-              <button onClick={() => copyToClipboard(webhookUrl)} className="bg-purple-600 hover:bg-purple-500 px-6 rounded-2xl text-white transition-all flex items-center justify-center">
+              <button onClick={() => copyToClipboard(webhookUrl)} className="bg-purple-600 hover:bg-purple-500 px-6 rounded-2xl text-white">
                 {copied ? <Check size={18}/> : <Copy size={18}/>}
               </button>
             </div>
@@ -280,13 +252,7 @@ export default function IntegrationsView({ userId }) {
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Verify Token (Secret Key)</label>
             <div className="relative">
               <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
-              <input 
-                type="text"
-                placeholder="Ex: my_secure_secret_123"
-                value={config.verifyToken}
-                onChange={(e) => setConfig({...config, verifyToken: e.target.value})}
-                className="w-full bg-black/40 border border-white/10 p-4 pl-12 rounded-2xl text-xs font-mono text-white outline-none focus:border-purple-500/50"
-              />
+              <input readOnly value={config.verifyToken} className="w-full bg-black/40 border border-white/10 p-4 pl-12 rounded-2xl text-xs font-mono text-white outline-none" />
             </div>
           </div>
         </div>
@@ -294,35 +260,13 @@ export default function IntegrationsView({ userId }) {
 
       {/* STATUS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ChannelCard 
-          title="WhatsApp Cloud" 
-          icon={<MessageCircle size={24} className="text-emerald-400" />} 
-          status={connectionStatus.whatsapp}
-          isActive={config.whatsappEnabled}
-          onToggle={() => setConfig({...config, whatsappEnabled: !config.whatsappEnabled})}
-          desc="Automate business chats via official Meta Cloud API."
-          onRetry={() => verifyChannel('whatsapp')}
-        />
-        <ChannelCard 
-          title="Instagram DM" 
-          icon={<Instagram size={24} className="text-fuchsia-400" />} 
-          status={connectionStatus.instagram}
-          isActive={config.instagramEnabled}
-          onToggle={() => setConfig({...config, instagramEnabled: !config.instagramEnabled})}
-          desc="AI responses for Instagram Business DMs & Stories."
-          onRetry={() => verifyChannel('instagram')}
-        />
-        <ChannelCard 
-          title="LinkedIn AI" 
-          status="idle" 
-          desc="Coming Soon: B2B lead generation & auto-pilot."
-          disabled
-          isActive={false}
-        />
+        <ChannelCard title="WhatsApp Cloud" icon={<MessageCircle size={24} className="text-emerald-400" />} status={connectionStatus.whatsapp} isActive={config.whatsappEnabled} onToggle={() => setConfig({...config, whatsappEnabled: !config.whatsappEnabled})} desc="Automate business chats via official Meta Cloud API." onRetry={() => verifyChannel('whatsapp')} />
+        <ChannelCard title="Instagram DM" icon={<Instagram size={24} className="text-fuchsia-400" />} status={connectionStatus.instagram} isActive={config.instagramEnabled} onToggle={() => setConfig({...config, instagramEnabled: !config.instagramEnabled})} desc="AI responses for Instagram Business DMs & Stories." onRetry={() => verifyChannel('instagram')} />
+        <ChannelCard title="LinkedIn AI" status="idle" desc="Coming Soon: B2B lead generation & auto-pilot." disabled isActive={false} />
       </div>
 
       {/* CONFIGURATION FORM */}
-      <section className="bg-white/5 backdrop-blur-2xl p-8 rounded-[3.5rem] border border-white/10 shadow-2xl relative">
+      <section className="bg-white/5 backdrop-blur-2xl p-8 rounded-[3.5rem] border border-white/10 shadow-2xl">
         <div className="flex items-center gap-3 mb-10">
           <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400"><Settings size={20} /></div>
           <h3 className="text-lg font-black text-white uppercase tracking-tight">Step 2: Credential Configuration</h3>
@@ -331,107 +275,39 @@ export default function IntegrationsView({ userId }) {
         <div className="grid lg:grid-cols-2 gap-12">
           {/* WhatsApp Config */}
           <div className="space-y-6">
-            <h4 className="flex items-center text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">
-              <span className="flex items-center gap-2"><MessageCircle size={14}/> WhatsApp Node Settings</span>
-            </h4>
-
+            <h4 className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]"><MessageCircle size={14}/> WhatsApp Node</h4>
             <div className={`p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] transition-all ${!config.whatsappEnabled ? 'opacity-30 grayscale pointer-events-none' : 'opacity-100'}`}>
-               <p className="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-widest text-center">SaaS Quick Connect (Recommended)</p>
-               <button 
-                 onClick={launchWhatsAppSignup}
-                 className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-xl"
-               >
-                 <Facebook size={16} className="text-[#1877F2]" />
-                 Connect with Facebook
+               <button onClick={launchWhatsAppSignup} className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-xl">
+                 <Facebook size={16} className="text-[#1877F2]" /> Connect WhatsApp
                </button>
-               <p className="text-[8px] text-slate-500 mt-4 text-center italic">One-click setup for Cloud API & Webhooks</p>
             </div>
-
-            <div className="relative flex items-center gap-4 my-4">
-               <div className="flex-1 h-[1px] bg-white/5"></div>
-               <span className="text-[8px] font-black text-slate-700 uppercase">Or Manual Entry</span>
-               <div className="flex-1 h-[1px] bg-white/5"></div>
-            </div>
-
             <div className="space-y-5">
-              <ConfigInput 
-                isSensitive 
-                disabled={!config.whatsappEnabled}
-                label="Permanent Access Token" 
-                value={config.whatsappToken} 
-                onChange={(v) => setConfig({...config, whatsappToken: v})} 
-                placeholder="EAAG..." 
-              />
-              <ConfigInput 
-                disabled={!config.whatsappEnabled}
-                label="Phone Number ID" 
-                value={config.phoneNumberId} 
-                onChange={(v) => setConfig({...config, phoneNumberId: v})} 
-                placeholder="1029..." 
-              />
+              <ConfigInput label="Access Token" value={config.whatsappToken} isSensitive disabled={!config.whatsappEnabled} placeholder="EAAG..." onChange={(v) => setConfig({...config, whatsappToken: v})} />
+              <ConfigInput label="Phone ID" value={config.phoneNumberId} disabled={!config.whatsappEnabled} placeholder="1029..." onChange={(v) => setConfig({...config, phoneNumberId: v})} />
             </div>
           </div>
 
           {/* Instagram Config */}
           <div className="space-y-6">
-            <h4 className="flex items-center gap-2 text-[10px] font-black text-fuchsia-400 uppercase tracking-[0.3em]">
-              <Instagram size={14}/> Instagram Node Settings
-            </h4>
-
+            <h4 className="flex items-center gap-2 text-[10px] font-black text-fuchsia-400 uppercase tracking-[0.3em]"><Instagram size={14}/> Instagram Node</h4>
             <div className={`p-6 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-[2rem] transition-all ${!config.instagramEnabled ? 'opacity-30 grayscale pointer-events-none' : 'opacity-100'}`}>
-               <p className="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-widest text-center">Cloud Sync (Recommended)</p>
-               <button 
-                 onClick={launchInstagramSignup}
-                 className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-fuchsia-50 transition-all shadow-xl"
-               >
-                 <Instagram size={16} className="text-[#E4405F]" />
-                 Connect Instagram DMs
+               <button onClick={launchInstagramSignup} className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-fuchsia-50 transition-all shadow-xl">
+                 <Instagram size={16} className="text-[#E4405F]" /> Connect Instagram
                </button>
-               <p className="text-[8px] text-slate-500 mt-4 text-center italic">Link Business Profile in one click</p>
             </div>
-
-            <div className="relative flex items-center gap-4 my-4">
-               <div className="flex-1 h-[1px] bg-white/5"></div>
-               <span className="text-[8px] font-black text-slate-700 uppercase">Or Manual Entry</span>
-               <div className="flex-1 h-[1px] bg-white/5"></div>
-            </div>
-
             <div className="space-y-5">
-              <ConfigInput 
-                isSensitive 
-                disabled={!config.instagramEnabled}
-                label="Graph Access Token" 
-                value={config.instagramToken} 
-                onChange={(v) => setConfig({...config, instagramToken: v})} 
-                placeholder="EAAG..." 
-              />
-              <ConfigInput 
-                disabled={!config.instagramEnabled}
-                label="Instagram Business ID" 
-                value={config.instagramBusinessId} 
-                onChange={(v) => setConfig({...config, instagramBusinessId: v})} 
-                placeholder="1784..." 
-              />
+              <ConfigInput label="Graph Token" value={config.instagramToken} isSensitive disabled={!config.instagramEnabled} placeholder="EAAG..." onChange={(v) => setConfig({...config, instagramToken: v})} />
+              <ConfigInput label="Business ID" value={config.instagramBusinessId} disabled={!config.instagramEnabled} placeholder="1784..." onChange={(v) => setConfig({...config, instagramBusinessId: v})} />
             </div>
           </div>
         </div>
 
-        {/* SAVE ACTION */}
-        <div className="flex flex-col sm:flex-row items-center gap-6 pt-10 mt-10 border-t border-white/5">
-          <button 
-            onClick={handleSaveSettings}
-            disabled={loading}
-            className="w-full sm:w-auto bg-purple-600 text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-purple-500 transition-all shadow-[0_0_40px_rgba(168,85,247,0.2)] flex items-center justify-center gap-3 disabled:opacity-50"
-          >
+        <div className="flex items-center gap-6 pt-10 mt-10 border-t border-white/5">
+          <button onClick={handleSaveSettings} disabled={loading} className="w-full sm:w-auto bg-purple-600 text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-purple-500 transition-all flex items-center justify-center gap-3 disabled:opacity-50">
             {loading ? <Loader2 className="animate-spin" size={20}/> : <ShieldCheck size={20}/>}
             {loading ? "Committing Changes..." : "Deploy Configuration"}
           </button>
-
-          {saveStatus === 'success' && (
-            <div className="flex items-center gap-3 text-emerald-400 font-black text-[10px] uppercase tracking-widest animate-in slide-in-from-left-2">
-              <Check size={16} /> Data Secured & Uplinked
-            </div>
-          )}
+          {saveStatus === 'success' && <div className="text-emerald-400 font-black text-[10px] uppercase tracking-widest animate-pulse">Uplink Secured</div>}
         </div>
       </section>
     </div>
