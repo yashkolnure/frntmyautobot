@@ -202,7 +202,7 @@ export default function IntegrationsView({ userId }) {
       window.location.href = `https://myautobot.in/api/auth/callback?platform=instagram&code=${code}`;
     }
   }, {
-    config_id: '1510513603582692', // Use the ID from your screenshot
+    config_id: '885361697215240', // Use the ID from your screenshot
     response_type: 'code',
     override_default_response_type: true,
     extras: {
