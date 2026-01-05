@@ -6,8 +6,27 @@ import React, { useState, useEffect, useMemo } from "react";
  * Handles: Auto-Compiling RAG, Manual Overrides, Persona Selection, and VPS Sync.
  */
 export default function BotEngine() {
-  const [data, setData] = useState(null);
-  const [isFetching, setIsFetching] = useState(true);
+  const DEFAULT_CONFIG = {
+  status: "draft",
+  isManualPromptEnabled: false,
+  isCustomRagEnabled: false,
+  model: { primary: "llama3", fallback: "llama3.2" },
+  customSystemPrompt: "",
+  ragFile: "",
+  rawData: {
+    businessName: "",
+    businessDescription: "",
+    pricing: "",
+    faq: "",
+    policies: "",
+    agentType: "support",
+    tone: "professional",
+    language: "English"
+  }
+};
+
+const [data, setData] = useState(DEFAULT_CONFIG);
+const [isFetching, setIsFetching] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [tokens, setTokens] = useState(0);
 
