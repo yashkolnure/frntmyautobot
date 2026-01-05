@@ -90,7 +90,7 @@ export default function IntegrationsView({ userId }) {
     instagram: 'idle'
   });
 
-  const REDIRECT_URI = 'https://myautobot.in/api/auth/callback';
+  const REDIRECT_URI = 'https://myautobot.in/api/auth/callback/';
 
   // --- Initialize Meta SDK ---
   useEffect(() => {
