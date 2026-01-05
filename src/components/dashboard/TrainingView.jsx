@@ -31,7 +31,7 @@ const [isFetching, setIsFetching] = useState(true);
   const [tokens, setTokens] = useState(0);
 
   // Set this to your VPS production domain or local development IP
-  const API_BASE_URL = "http://localhost:5000/api/bot"; 
+  const API_BASE_URL = "/api/bot"; 
 
   /* -------------------------------------------------------------------------- */
   /* 1. NEURAL LINK: DATA HYDRATION                                            */

@@ -136,15 +136,18 @@ export default function IntegrationsView({ userId }) {
   };
 
   // --- Launch One-Click Signup (Instagram) ---
+// --- Updated Instagram-Only Signup ---
   const launchInstagramSignup = () => {
     if (!window.FB) return alert("Meta SDK not loaded.");
+    
     window.FB.login((response) => {
       if (response.authResponse) {
         const code = response.authResponse.code;
+        // We add a 'platform' flag so the backend knows which discovery path to take
         window.location.href = `https://myautobot.in/api/auth/callback?platform=instagram&code=${code}`;
       }
     }, {
-      config_id: '1510513603582692', // Same Audited Config ID (includes IG permissions)
+      config_id: '1418243342982885', // Your NEW Instagram-only Config ID
       response_type: 'code',
       override_default_response_type: true
     });
