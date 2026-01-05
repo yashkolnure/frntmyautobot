@@ -3,12 +3,12 @@ import {
   MessageCircle, Instagram, Link, Copy, Check, Settings, 
   Loader2, ShieldCheck, RefreshCw, Sparkles, Key, Info, 
   ChevronDown, ChevronUp, Eye, EyeOff, Power, PowerOff,
-  Facebook // Added for the button icon
+  Facebook
 } from 'lucide-react';
 import API from '../../api';
 
 // --- Sub-Component: Configuration Input ---
-const ConfigInput = ({ label, type, value, onChange, placeholder, isSensitive = false, disabled = false }) => {
+const ConfigInput = ({ label, value, onChange, placeholder, isSensitive = false, disabled = false }) => {
   const [showValue, setShowValue] = useState(false);
   
   return (
@@ -120,24 +120,33 @@ export default function IntegrationsView({ userId }) {
     }(document, 'script', 'facebook-jssdk'));
   }, []);
 
-  // --- Launch Embedded Signup ---
+  // --- Launch One-Click Signup (WhatsApp) ---
   const launchWhatsAppSignup = () => {
     if (!window.FB) return alert("Meta SDK not loaded yet.");
-    
     window.FB.login((response) => {
       if (response.authResponse) {
         const code = response.authResponse.code;
-        // Redirect to your backend callback with the code
-        window.location.href = `https://myautobot.in/api/auth/callback?code=${code}`;
+        window.location.href = `https://myautobot.in/api/auth/callback?platform=whatsapp&code=${code}`;
       }
     }, {
-      config_id: '1510513603582692', // Your official Configuration ID
+      config_id: '1510513603582692', // Audited Config ID
       response_type: 'code',
-      override_default_response_type: true,
-      extras: {
-        feature: 'whatsapp_embedded_signup',
-        version: 'v3'
+      override_default_response_type: true
+    });
+  };
+
+  // --- Launch One-Click Signup (Instagram) ---
+  const launchInstagramSignup = () => {
+    if (!window.FB) return alert("Meta SDK not loaded.");
+    window.FB.login((response) => {
+      if (response.authResponse) {
+        const code = response.authResponse.code;
+        window.location.href = `https://myautobot.in/api/auth/callback?platform=instagram&code=${code}`;
       }
+    }, {
+      config_id: '1510513603582692', // Same Audited Config ID (includes IG permissions)
+      response_type: 'code',
+      override_default_response_type: true
     });
   };
 
@@ -191,26 +200,6 @@ export default function IntegrationsView({ userId }) {
       setConnectionStatus(prev => ({ ...prev, [platform]: 'failed' }));
     }
   };
-
-  const launchInstagramSignup = () => {
-  if (!window.FB) return alert("Meta SDK not loaded.");
-
-  window.FB.login((response) => {
-    if (response.authResponse) {
-      const code = response.authResponse.code;
-      // Send to your backend with a platform flag
-      window.location.href = `https://myautobot.in/api/auth/callback?platform=instagram&code=${code}`;
-    }
-  }, {
-    config_id: '885361697215240', // Use the ID from your screenshot
-    response_type: 'code',
-    override_default_response_type: true,
-    extras: {
-      feature: 'instagram_messaging', // Specific feature for IG DMs
-      version: 'v3'
-    }
-  });
-};
 
   const handleSaveSettings = async () => {
     setLoading(true);
@@ -300,7 +289,7 @@ export default function IntegrationsView({ userId }) {
         </div>
       </section>
 
-      {/* STATUS CARDS WITH TOGGLES */}
+      {/* STATUS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <ChannelCard 
           title="WhatsApp Cloud" 
@@ -339,12 +328,11 @@ export default function IntegrationsView({ userId }) {
         <div className="grid lg:grid-cols-2 gap-12">
           {/* WhatsApp Config */}
           <div className="space-y-6">
-            <h4 className="flex items-center justify-between text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">
+            <h4 className="flex items-center text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">
               <span className="flex items-center gap-2"><MessageCircle size={14}/> WhatsApp Node Settings</span>
             </h4>
 
-            {/* 1-CLICK CONNECT BUTTON */}
-            <div className={`p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] transition-opacity duration-300 ${!config.whatsappEnabled ? 'opacity-30 grayscale pointer-events-none' : 'opacity-100'}`}>
+            <div className={`p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] transition-all ${!config.whatsappEnabled ? 'opacity-30 grayscale pointer-events-none' : 'opacity-100'}`}>
                <p className="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-widest text-center">SaaS Quick Connect (Recommended)</p>
                <button 
                  onClick={launchWhatsAppSignup}
@@ -386,18 +374,25 @@ export default function IntegrationsView({ userId }) {
             <h4 className="flex items-center gap-2 text-[10px] font-black text-fuchsia-400 uppercase tracking-[0.3em]">
               <Instagram size={14}/> Instagram Node Settings
             </h4>
-            {/* Note: You can add a similar "Connect" button for Instagram here later */}
-            <div className={`p-6 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-[2rem] transition-all ${!config.instagramEnabled ? 'opacity-30 grayscale' : 'opacity-100'}`}>
-  <p className="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-widest text-center">Cloud Sync (Recommended)</p>
-  <button 
-    onClick={launchInstagramSignup}
-    className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-fuchsia-50 transition-all shadow-xl"
-  >
-    <Instagram size={16} className="text-[#E4405F]" />
-    Connect Instagram DMs
-  </button>
-  <p className="text-[8px] text-slate-500 mt-4 text-center italic">One-click link for Business DMs</p>
-</div>
+
+            <div className={`p-6 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-[2rem] transition-all ${!config.instagramEnabled ? 'opacity-30 grayscale pointer-events-none' : 'opacity-100'}`}>
+               <p className="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-widest text-center">Cloud Sync (Recommended)</p>
+               <button 
+                 onClick={launchInstagramSignup}
+                 className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-fuchsia-50 transition-all shadow-xl"
+               >
+                 <Instagram size={16} className="text-[#E4405F]" />
+                 Connect Instagram DMs
+               </button>
+               <p className="text-[8px] text-slate-500 mt-4 text-center italic">Link Business Profile in one click</p>
+            </div>
+
+            <div className="relative flex items-center gap-4 my-4">
+               <div className="flex-1 h-[1px] bg-white/5"></div>
+               <span className="text-[8px] font-black text-slate-700 uppercase">Or Manual Entry</span>
+               <div className="flex-1 h-[1px] bg-white/5"></div>
+            </div>
+
             <div className="space-y-5">
               <ConfigInput 
                 isSensitive 
