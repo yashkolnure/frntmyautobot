@@ -92,7 +92,7 @@ export default function IntegrationsView({ userId }) {
     instagramToken: '',
     instagramBusinessId: '',
     instagramEnabled: false,
-    verifyToken: '', 
+    verifyToken: 'myautobot_webhook_token_2025fdcs', 
   });
 
   const [connectionStatus, setConnectionStatus] = useState({
@@ -162,7 +162,7 @@ export default function IntegrationsView({ userId }) {
           instagramToken: data.instagramToken || '',
           instagramBusinessId: data.instagramBusinessId || '',
           instagramEnabled: data.instagramEnabled ?? false,
-          verifyToken: data.verifyToken || '',
+          verifyToken: data.verifyToken || 'myautobot_webhook_token_2025fdcs',
         });
         if (data.whatsappToken && data.whatsappEnabled) verifyChannel('whatsapp', data);
         if (data.instagramToken && data.instagramEnabled) verifyChannel('instagram', data);
