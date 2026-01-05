@@ -56,6 +56,7 @@ useEffect(() => {
       
       // Check both bot and botConfig keys
       const botObj = res.bot || res.botConfig;
+      console.log( "userId fetched from backend:", res.userId );
 
       if (botObj) {
         setData(botObj);
