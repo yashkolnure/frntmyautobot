@@ -64,14 +64,23 @@ export default function Auth() {
         setMessage("Recovery sequence initiated. Check your inbox.");
       } else {
         const { data } = authMode === 'login' 
-          ? await login({ email: formData.email, password: formData.password }) 
-          : await register(formData);
-        
-        // --- SECURE IDENTITY STORAGE ---
-        localStorage.setItem('token', data.token); 
-        // Store the userId for immediate dashboard access
-        localStorage.setItem('userId', data.user?._id || data.userId || ''); 
+  ? await login({ email: submissionData.email, password: submissionData.password }) 
+  : await register(submissionData);
 
+// Check what the data actually contains
+console.log("Login Response Data:", data); 
+
+if (data.token) {
+  localStorage.setItem('token', data.token);
+}
+
+// Ensure you are drilling into the 'user' object
+if (data.user && data.user.id) {
+  localStorage.setItem('userId', data.user.id);
+  localStorage.setItem('userName', data.user.name);
+} else {
+  console.error("User ID not found in response. Check Backend response structure.");
+}
         // Strategic Redirection
         if (authMode === 'register') {
           navigate('/pricing');
