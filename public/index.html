@@ -40,10 +40,22 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
   </body>
-  <script
+<script>
+  window.fbAsyncInit = function () {
+    FB.init({
+      appId: "900824542624488",
+      cookie: true,
+      xfbml: false,
+      version: "v19.0"   <!-- ✅ REQUIRED -->
+    });
+  };
+</script>
+
+<script
   async
   defer
   crossorigin="anonymous"
   src="https://connect.facebook.net/en_US/sdk.js">
 </script>
+
 </html>
