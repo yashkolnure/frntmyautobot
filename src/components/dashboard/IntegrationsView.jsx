@@ -34,36 +34,42 @@ export default function IntegrationsView() {
     document.body.appendChild(script);
   }, []);
 
-  /* ---------------- CONNECT ---------------- */
-  const connectMeta = async (platform, configId) => {
-    if (!window.FB) return alert("Meta SDK not loaded");
+  const connectMeta = (platform, configId) => {
+  if (!window.FB) {
+    alert("Meta SDK not loaded");
+    return;
+  }
 
-    window.FB.login(
-      async (response) => {
-        if (!response.authResponse) return;
+  window.FB.login(
+    (response) => {
+      if (!response.authResponse) {
+        alert("Meta authorization cancelled");
+        return;
+      }
 
+      // 🔒 SAFELY HANDLE ASYNC
+      (async () => {
         try {
           setLoading(true);
-
           await API.post("/api/auth/meta-connect", {
             platform,
-            userId
+            userId: localStorage.getItem("userId")
           });
-
-          alert(`${platform} connected successfully`);
+          alert(`✅ ${platform} connected`);
         } catch (err) {
           console.error("Meta connect failed:", err);
-          alert("Meta connection failed");
+          alert("❌ Meta connect failed");
         } finally {
           setLoading(false);
         }
-      },
-      {
-        config_id: configId,
-        response_type: "token" // ✅ TOKEN ONLY
-      }
-    );
-  };
+      })();
+    },
+    {
+      config_id: configId,
+      response_type: "token"
+    }
+  );
+};
 
   const webhookUrl = `${window.location.origin}/api/auth/webhook`;
 
