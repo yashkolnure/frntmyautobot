@@ -182,26 +182,27 @@ export default function IntegrationsView() {
     return;
   }
 
-  window.FB.login(
-    (response) => {
-      if (!response.authResponse?.code) {
-        alert("Meta authorization failed");
-        return;
-      }
-
-      // ✅ CALL ASYNC FUNCTION INSIDE
-      handleMetaConnect({
-        code: response.authResponse.code,
-        platform,
-        userId
-      });
-    },
-    {
-      config_id: configId,
-      response_type: "code",
-      override_default_response_type: true
+window.FB.login(
+  (response) => {
+    if (!response.authResponse?.code) {
+      alert("Meta authorization failed");
+      return;
     }
-  );
+
+    handleMetaConnect({
+      code: response.authResponse.code,
+      platform,
+      userId
+    });
+  },
+  {
+    config_id: configId,
+    response_type: "code",
+    override_default_response_type: true,
+    redirect_uri: ""   // ✅ THIS LINE FIXES 36008
+  }
+);
+
 };
 
 
