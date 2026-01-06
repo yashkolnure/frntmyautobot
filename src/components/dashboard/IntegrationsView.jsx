@@ -159,24 +159,31 @@ export default function IntegrationsView({ userId }) {
   /* ---------------------------------------------
      EMBEDDED SIGNUP (NO redirect_uri HERE)
   --------------------------------------------- */
-  const launchSignup = (platform, configId) => {
-    if (!window.FB) return alert("Meta SDK not loaded");
+const launchSignup = (platform, configId) => {
+  if (!window.FB) return alert("Meta SDK not loaded");
 
-    window.FB.login(
-      (response) => {
-        if (response.authResponse?.code) {
-          window.location.href =
-            `${REDIRECT_URI}?platform=${platform}&code=${response.authResponse.code}`;
-        }
-      },
-      {
-        config_id: configId,
-        response_type: "code",
-        override_default_response_type: true
-        // ❌ NO redirect_uri here
+  const userId = localStorage.getItem("userId");
+  if (!userId) {
+    alert("User not authenticated. Please re-login.");
+    return;
+  }
+
+  window.FB.login(
+    (response) => {
+      if (response.authResponse?.code) {
+        window.location.href =
+          `${REDIRECT_URI}?platform=${platform}&code=${response.authResponse.code}&state=${userId}`;
       }
-    );
-  };
+    },
+    {
+      config_id: configId,
+      response_type: "code",
+      override_default_response_type: true
+      // ❌ DO NOT pass redirect_uri here
+    }
+  );
+};
+
 
   /* ---------------------------------------------
      SAVE SETTINGS
