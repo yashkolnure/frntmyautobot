@@ -53,5 +53,14 @@ function App() {
     </Router>
   );
 }
+window.fbAsyncInit = function () {
+  window.FB.init({
+    appId: process.env.REACT_APP_META_APP_ID,
+    cookie: true,
+    xfbml: false,
+    version: "v19.0"
+  });
+};
+
 
 export default App;
