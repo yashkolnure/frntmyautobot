@@ -157,38 +157,33 @@ export default function IntegrationsView() {
   /* ---------------------------------------------
      EMBEDDED SIGNUP (STATE = userId from localStorage)
   --------------------------------------------- */
-  const launchSignup = async (platform, configId) => {
+  const launchSignup = (platform, configId) => {
   if (!window.FB) return alert("Meta SDK not loaded");
 
   const userId = localStorage.getItem("userId");
-  if (!userId) return alert("User not authenticated");
+  if (!userId) {
+    alert("User not authenticated. Please login again.");
+    return;
+  }
 
   window.FB.login(
-    async (response) => {
+    (response) => {
       if (!response.authResponse?.code) {
         alert("Meta authorization failed");
         return;
       }
 
-      try {
-        await API.post("/auth/meta-connect", {
-          code: response.authResponse.code,
-          platform,
-          userId
-        });
-
-        alert("✅ Connected successfully");
-        fetchConfig(); // refresh UI
-      } catch (err) {
-        alert("❌ Meta connection failed");
-        console.error(err);
-      }
+      // ✅ CALL ASYNC FUNCTION INSIDE
+      handleMetaConnect({
+        code: response.authResponse.code,
+        platform,
+        userId
+      });
     },
     {
       config_id: configId,
       response_type: "code",
       override_default_response_type: true
-      // 🚫 NO redirect_uri
     }
   );
 };
