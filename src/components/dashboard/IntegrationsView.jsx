@@ -59,7 +59,7 @@ export default function IntegrationsView() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleFacebookConnect = () => {
+const handleFacebookConnect = () => {
   if (!window.FB) {
     setStatus({ type: "error", message: "Facebook SDK not loaded" });
     return;
@@ -69,34 +69,15 @@ export default function IntegrationsView() {
   setStatus({ type: "", message: "" });
 
   window.FB.login(
-    async (response) => {
+    function (response) {   // ✅ normal function
       if (!response.authResponse) {
         setLoading(false);
         setStatus({ type: "error", message: "Facebook login cancelled" });
         return;
       }
 
-      try {
-        const userAccessToken = response.authResponse.accessToken;
-
-        await API.post("/meta-connect", {
-          userId: localStorage.getItem("userId"),
-          userAccessToken
-        });
-
-        setStatus({
-          type: "success",
-          message: "Instagram connected successfully 🎉"
-        });
-      } catch (err) {
-        console.error(err);
-        setStatus({
-          type: "error",
-          message: "Failed to connect Instagram"
-        });
-      } finally {
-        setLoading(false);
-      }
+      // ✅ call async function safely
+      connectInstagramBackend(response.authResponse.accessToken);
     },
     {
       scope: "pages_show_list,pages_read_engagement,instagram_manage_messages"
