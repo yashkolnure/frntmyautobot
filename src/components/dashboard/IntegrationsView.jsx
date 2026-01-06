@@ -154,6 +154,22 @@ export default function IntegrationsView() {
     fetchConfig();
   }, [fetchConfig]);
 
+
+  const handleMetaConnect = async ({ code, platform, userId }) => {
+  try {
+    await API.post("/auth/meta-connect", {
+      code,
+      platform,
+      userId
+    });
+
+    alert("✅ Connected successfully");
+    fetchConfig(); // refresh integration state
+  } catch (err) {
+    console.error("Meta connect failed:", err);
+    alert("❌ Meta connection failed");
+  }
+};
   /* ---------------------------------------------
      EMBEDDED SIGNUP (STATE = userId from localStorage)
   --------------------------------------------- */
