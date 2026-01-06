@@ -59,6 +59,28 @@ export default function IntegrationsView() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const connectInstagramBackend = async (userAccessToken) => {
+  try {
+    await API.post("/meta-connect", {
+      userId: localStorage.getItem("userId"),
+      userAccessToken
+    });
+
+    setStatus({
+      type: "success",
+      message: "Instagram connected successfully 🎉"
+    });
+  } catch (err) {
+    console.error(err);
+    setStatus({
+      type: "error",
+      message: "Failed to connect Instagram"
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 const handleFacebookConnect = () => {
   if (!window.FB) {
     setStatus({ type: "error", message: "Facebook SDK not loaded" });
