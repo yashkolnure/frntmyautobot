@@ -157,29 +157,42 @@ export default function IntegrationsView() {
   /* ---------------------------------------------
      EMBEDDED SIGNUP (STATE = userId from localStorage)
   --------------------------------------------- */
-  const launchSignup = (platform, configId) => {
-    if (!window.FB) return alert("Meta SDK not loaded");
+  const launchSignup = async (platform, configId) => {
+  if (!window.FB) return alert("Meta SDK not loaded");
 
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      alert("User not authenticated. Please login again.");
-      return;
-    }
+  const userId = localStorage.getItem("userId");
+  if (!userId) return alert("User not authenticated");
 
-    window.FB.login(
-      (response) => {
-        if (response.authResponse?.code) {
-          window.location.href =
-            `${REDIRECT_URI}?platform=${platform}&code=${response.authResponse.code}&state=${userId}`;
-        }
-      },
-      {
-        config_id: configId,
-        response_type: "code",
-        override_default_response_type: true
+  window.FB.login(
+    async (response) => {
+      if (!response.authResponse?.code) {
+        alert("Meta authorization failed");
+        return;
       }
-    );
-  };
+
+      try {
+        await API.post("/auth/meta-connect", {
+          code: response.authResponse.code,
+          platform,
+          userId
+        });
+
+        alert("✅ Connected successfully");
+        fetchConfig(); // refresh UI
+      } catch (err) {
+        alert("❌ Meta connection failed");
+        console.error(err);
+      }
+    },
+    {
+      config_id: configId,
+      response_type: "code",
+      override_default_response_type: true
+      // 🚫 NO redirect_uri
+    }
+  );
+};
+
 
   /* ---------------------------------------------
      SAVE SETTINGS
