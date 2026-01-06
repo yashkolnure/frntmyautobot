@@ -51,7 +51,7 @@ export default function IntegrationsView() {
       (async () => {
         try {
           setLoading(true);
-          await API.post("/api/auth/meta-connect", {
+          await API.post("/auth/meta-connect", {
             platform,
             userId: localStorage.getItem("userId")
           });
@@ -71,7 +71,7 @@ export default function IntegrationsView() {
   );
 };
 
-  const webhookUrl = `${window.location.origin}/api/auth/webhook`;
+  const webhookUrl = `${window.location.origin}/auth/webhook`;
 
   return (
     <div className="space-y-10 pb-20">
