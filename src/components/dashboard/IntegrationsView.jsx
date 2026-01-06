@@ -8,7 +8,6 @@ import {
   Settings,
   Loader2,
   ShieldCheck,
-  RefreshCw,
   Sparkles,
   Facebook
 } from "lucide-react";
@@ -54,7 +53,6 @@ const ChannelCard = ({
 }) => {
   const colorMap = {
     idle: "text-slate-400",
-    checking: "text-purple-400",
     connected: "text-emerald-400",
     failed: "text-red-400",
     disabled: "text-slate-600"
@@ -92,7 +90,7 @@ const ChannelCard = ({
           colorMap[isActive ? status : "disabled"]
         }`}
       >
-        {isActive ? status : "disabled"}
+        {isActive ? "connected" : "disabled"}
       </div>
     </div>
   );
@@ -101,7 +99,7 @@ const ChannelCard = ({
 /* ---------------------------------------------
    MAIN COMPONENT
 --------------------------------------------- */
-export default function IntegrationsView({ userId }) {
+export default function IntegrationsView() {
   const [config, setConfig] = useState({
     whatsappEnabled: false,
     instagramEnabled: false,
@@ -157,23 +155,28 @@ export default function IntegrationsView({ userId }) {
   }, [fetchConfig]);
 
   /* ---------------------------------------------
-     EMBEDDED SIGNUP (NO redirect_uri HERE)
+     EMBEDDED SIGNUP (STATE = userId from localStorage)
   --------------------------------------------- */
   const launchSignup = (platform, configId) => {
     if (!window.FB) return alert("Meta SDK not loaded");
+
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      alert("User not authenticated. Please login again.");
+      return;
+    }
 
     window.FB.login(
       (response) => {
         if (response.authResponse?.code) {
           window.location.href =
-            `${REDIRECT_URI}?platform=${platform}&code=${response.authResponse.code}`;
+            `${REDIRECT_URI}?platform=${platform}&code=${response.authResponse.code}&state=${userId}`;
         }
       },
       {
         config_id: configId,
         response_type: "code",
         override_default_response_type: true
-        // ❌ NO redirect_uri here
       }
     );
   };
@@ -194,7 +197,7 @@ export default function IntegrationsView({ userId }) {
   };
 
   const webhookUrl =
-    `${window.location.origin}/api/webhooks/meta?botId=${userId}`;
+    `${window.location.origin}/api/webhooks/meta?botId=${localStorage.getItem("userId")}`;
 
   const copyText = (text) => {
     navigator.clipboard.writeText(text);
@@ -216,7 +219,6 @@ export default function IntegrationsView({ userId }) {
   return (
     <div className="space-y-10 pb-20 animate-in fade-in">
 
-      {/* HEADER */}
       <h2 className="text-2xl font-black text-white uppercase flex items-center gap-2">
         Integrations <Sparkles className="text-purple-500" />
       </h2>
@@ -260,7 +262,7 @@ export default function IntegrationsView({ userId }) {
           icon={<MessageCircle className="text-emerald-400" />}
           desc="Official Meta WhatsApp Cloud API"
           isActive={config.whatsappEnabled}
-          status="idle"
+          status="connected"
           onToggle={() =>
             setConfig((c) => ({ ...c, whatsappEnabled: !c.whatsappEnabled }))
           }
@@ -271,7 +273,7 @@ export default function IntegrationsView({ userId }) {
           icon={<Instagram className="text-fuchsia-400" />}
           desc="AI replies for Instagram Business DMs"
           isActive={config.instagramEnabled}
-          status="idle"
+          status="connected"
           onToggle={() =>
             setConfig((c) => ({ ...c, instagramEnabled: !c.instagramEnabled }))
           }
