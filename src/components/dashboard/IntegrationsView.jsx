@@ -199,7 +199,6 @@ window.FB.login(
     config_id: configId,
     response_type: "code",
     override_default_response_type: true,
-    redirect_uri: ""   // ✅ THIS LINE FIXES 36008
   }
 );
 
