@@ -61,7 +61,7 @@ export default function IntegrationsView() {
 
   const connectInstagramBackend = async (userAccessToken) => {
   try {
-    await API.post("/meta-connect", {
+    await API.post("/auth/meta-connect", {
       userId: localStorage.getItem("userId"),
       userAccessToken
     });
