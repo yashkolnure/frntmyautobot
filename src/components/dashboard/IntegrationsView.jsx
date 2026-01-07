@@ -90,21 +90,32 @@ const handleFacebookConnect = () => {
   setLoading(true);
   setStatus({ type: "", message: "" });
 
-  window.FB.login(
-    function (response) {   // ✅ normal function
-      if (!response.authResponse) {
-        setLoading(false);
-        setStatus({ type: "error", message: "Facebook login cancelled" });
-        return;
-      }
+window.FB.login(
+  function (response) {
+    console.log("FB LOGIN RESPONSE >>>", response);
 
-      // ✅ call async function safely
-      connectInstagramBackend(response.authResponse.accessToken);
-    },
-    {
-      scope: "pages_show_list,pages_read_engagement,instagram_manage_messages"
+    if (!response.authResponse) {
+      setLoading(false);
+      setStatus({
+        type: "error",
+        message: "Facebook login cancelled"
+      });
+      return;
     }
-  );
+
+    const userAccessToken = response.authResponse.accessToken;
+
+    // 🔥 MUST START WITH EAAJ
+    console.log("USER TOKEN PREFIX:", userAccessToken.slice(0, 4));
+
+    connectInstagramBackend(userAccessToken);
+  },
+  {
+    scope: "pages_show_list,pages_read_engagement,instagram_manage_messages",
+    return_scopes: true
+  }
+);
+
 };
 
 
