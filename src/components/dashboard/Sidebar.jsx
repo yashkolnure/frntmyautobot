@@ -57,6 +57,13 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, userTokens 
           active={activeTab === 'integrations'}
           onClick={() => setActiveTab('integrations')}
         />
+
+        <SidebarItem 
+          icon={<Settings size={20}/>} 
+          label=" (BETA)" 
+          active={activeTab === 'apikeys'}
+          onClick={() => setActiveTab('apikeys')}
+        />
         {/* --- NEW: NEURAL CREDITS LINK --- */}
         <SidebarItem 
           icon={<Coins size={20}/>} 

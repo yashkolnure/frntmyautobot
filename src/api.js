@@ -17,6 +17,7 @@ export const login = (formData) => API.post('/auth/login', formData);
 export const register = (formData) => API.post('/auth/register', formData);
 export const requestPasswordReset = (email) => API.post('/auth/forgot-password', { email });
 export const resetPassword = (token, password) => API.post(`/auth/reset-password/${token}`, { password });
+export const verifyOtp = (data) => API.post('/auth/verify-otp', data);
 
 // --- BOT CONFIGURATION & CREDITS ---
 export const getConfig = () => API.get('/bot/config');

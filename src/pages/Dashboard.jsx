@@ -13,6 +13,7 @@ import HistoryView from '../components/dashboard/HistoryView';
 import DeploymentView from '../components/dashboard/DeploymentView';
 import LeadsView from '../components/dashboard/LeadsView';
 import IntegrationsView from '../components/dashboard/IntegrationsView';
+import APIKeysView from '../components/dashboard/APIKeysView';
 import TokenPurchaseView from '../components/dashboard/TokenPurchaseView';
 
 // --- THE AMBIENT BACKGROUND ---
@@ -56,7 +57,6 @@ useEffect(() => {
       
       // Check both bot and botConfig keys
       const botObj = res.bot || res.botConfig;
-      console.log( "userId fetched from backend:", res.userId );
 
       if (botObj) {
         setData(botObj);
@@ -66,7 +66,6 @@ useEffect(() => {
         // If it is the Bot's own ID, use botObj._id
         const deploymentId = botObj.user || botObj._id; 
         
-        console.log("🚀 Deployment ID identified:", deploymentId);
         setUserId(deploymentId); 
       }
       
@@ -138,17 +137,7 @@ useEffect(() => {
               <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] mt-1.5">Node: Synchronized • V 2.0.4</p>
             </div>
           </div>
-          
-          {activeTab === 'training' && (
-            <button 
-              onClick={() => document.getElementById('main-deploy-btn')?.click()} 
-              disabled={loading}
-              className="bg-purple-600 text-white px-4 py-2 md:px-8 md:py-4 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-purple-500/20 transition-all hover:bg-purple-500 disabled:opacity-50"
-            >
-              {loading ? <Loader2 className="animate-spin" size={16}/> : <Save size={16} />}
-              <span>Push to Production</span>
-            </button>
-          )}
+        
         </header>
 
         {/* VIEW RENDERER */}
@@ -165,10 +154,11 @@ useEffect(() => {
             
             {activeTab === 'history' && <HistoryView />}
             {activeTab === 'leads' && <LeadsView />}
-            {activeTab === 'deployment' && (
-    <DeploymentView userId={userId} />
-  
+            {activeTab === 'deployment' && ( <DeploymentView userId={userId} />
               )}
+              {activeTab === 'apikeys' && (
+       <APIKeysView userId={userId} />
+    )}
             {activeTab === 'integrations' && <IntegrationsView userId={userId} />}
             {activeTab === 'purchase' && (
               <TokenPurchaseView 

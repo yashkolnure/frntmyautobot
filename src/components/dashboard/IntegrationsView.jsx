@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useEffect } from "react";
 import {
   Instagram,
   Link,
@@ -23,6 +24,29 @@ export default function IntegrationsView() {
     accessToken: "",
     verifyToken: "my_autobot_handshake_" + Math.random().toString(36).substring(7)
   });
+useEffect(() => {
+  const fetchInstagramConfig = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+
+      const res = await API.get(
+        `/api/integrations/manual/instagram/${userId}`
+      );
+
+      setInstaConfig((prev) => ({
+        ...prev,
+        instaId: res.data.instaId || "",
+        accessToken: res.data.accessToken || ""
+      }));
+    } catch (err) {
+      console.log("No saved Instagram config found");
+    }
+  };
+
+  fetchInstagramConfig();
+}, []);
+
 
   const webhookUrl = `${window.location.origin}/api/auth/webhook/instagram`;
 
@@ -209,28 +233,7 @@ window.FB.login(
         </button>
       </section>
 
-      {/* STEP 2A: OFFICIAL FACEBOOK CONNECT */}
-<section className="p-6 bg-white/5 rounded-2xl border border-white/10 space-y-4">
-  <h3 className="text-white font-black uppercase text-sm flex gap-2 items-center">
-    <Instagram size={16} className="text-blue-500" />
-    Connect Instagram (Recommended)
-  </h3>
-
-  <p className="text-gray-400 text-xs">
-    Securely connect your Instagram Business account using Facebook Login.
-    No tokens required.
-  </p>
-
-  <button
-    onClick={handleFacebookConnect}
-    disabled={loading}
-    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-black uppercase text-xs flex justify-center items-center gap-2 transition-all disabled:opacity-50"
-  >
-    {loading ? <Loader2 className="animate-spin" /> : <Instagram size={16} />}
-    Connect with Facebook
-  </button>
-</section>
-
+    
 
       <div className="bg-purple-600/10 border border-purple-500/20 p-4 rounded-xl">
         <p className="text-purple-300 text-[10px] leading-relaxed">

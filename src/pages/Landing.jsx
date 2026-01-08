@@ -69,11 +69,8 @@ const LandingPage = () => {
       Your customers are messaging you 24/7. MyAutoBot replies instantly, answers questions, and saves customer details automatically.
     </p>
     <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-      <button className="px-10 py-5 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl font-black text-xl transition-all shadow-[0_0_50px_-10px_rgba(168,85,247,0.6)] flex items-center justify-center gap-2 group hover:scale-105">
-        Start Free 7-Day Trial <ArrowRight className="group-hover:translate-x-1 transition-transform" />
-      </button>
-      <button className="px-10 py-5 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold text-xl border border-white/10 backdrop-blur-xl transition-all">
-        See Live Demo
+      <button className="group relative overflow-hidden px-6 py-3 bg-purple-600 text-white rounded-xl font-black text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center gap-2">
+        Start Free Now <ArrowRight className="group-hover:translate-x-1 transition-transform" />
       </button>
     </div>
     <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-6 text-sm font-bold text-purple-300/70 uppercase tracking-wider">
