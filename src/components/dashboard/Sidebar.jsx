@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Bot, MessageSquare, Settings, LogOut, 
-  Share2, Users, Terminal, Coins, Zap 
+  Share2, Users, Terminal, Coins, Zap , Key
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, onLogout, userTokens = 0 }) {
@@ -59,8 +59,8 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, userTokens 
         />
 
         <SidebarItem 
-          icon={<Settings size={20}/>} 
-          label=" (BETA)" 
+          icon={<Key size={20}/>} 
+          label="API Keys" 
           active={activeTab === 'apikeys'}
           onClick={() => setActiveTab('apikeys')}
         />
