@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
-  Bot, Mail, Lock, User, ArrowRight, Key, 
-  X, ChevronLeft, Loader2, Phone, Eye, EyeOff, ShieldCheck 
+  Gift, Bot, Mail, Lock, User, ArrowRight, Key, 
+  X, ChevronLeft, Loader2, Phone, Eye, EyeOff, ShieldCheck, CheckCircle2 
 } from 'lucide-react';
+import axios from 'axios';
 import { login, register, verifyOtp, requestPasswordReset } from '../api'; 
 
-// --- Reusable Input Sub-component ---
-const AuthInput = ({ icon: Icon, label, togglePassword, showPassword, ...props }) => (
+// --- Reusable Input Sub-component with Status Indicators ---
+const AuthInput = ({ icon: Icon, label, togglePassword, showPassword, statusIcon: StatusIcon, statusColor, ...props }) => (
   <div className="space-y-1.5">
     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">
       {label}
@@ -27,57 +28,87 @@ const AuthInput = ({ icon: Icon, label, togglePassword, showPassword, ...props }
           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       )}
+      {/* Validation Status Indicator */}
+      {StatusIcon && (
+        <div className={`absolute right-4 top-1/2 -translate-y-1/2 ${statusColor}`}>
+          <StatusIcon size={18} className={StatusIcon === Loader2 ? "animate-spin" : ""} />
+        </div>
+      )}
     </div>
   </div>
 );
 
 export default function Auth() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // --- AUTH STATES ---
   const [authMode, setAuthMode] = useState('login'); 
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [formData, setFormData] = useState({ 
-    name: '', email: '', password: '', confirmPassword: '', contact: '' 
-  });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState(""); 
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  
+  // --- FORM STATES ---
+  const [otp, setOtp] = useState("");
+  const [formData, setFormData] = useState({ 
+    name: '', email: '', password: '', confirmPassword: '', contact: '', refCode: '' 
+  });
 
-  // Redirect if already authenticated
+  // --- REFERRAL VALIDATION STATES ---
+  const [refStatus, setRefStatus] = useState('idle'); // idle, checking, valid, invalid
+  const [refOwner, setRefOwner] = useState("");
+
+  // 1. Redirect if already authenticated
   useEffect(() => {
     if (localStorage.getItem('token')) navigate('/dashboard');
   }, [navigate]);
 
-  // Reset errors/OTP state when switching modes
+  // 2. Capture Referral Code from URL on Mount
   useEffect(() => {
-    setError("");
-    setMessage("");
-    setIsOtpSent(false);
-    setOtp("");
-  }, [authMode]);
+    const urlRef = searchParams.get('ref');
+    if (urlRef) {
+      setFormData(prev => ({ ...prev, refCode: urlRef.toUpperCase() }));
+      setAuthMode('register'); // Auto-switch to registration
+    }
+  }, [searchParams]);
 
+  // 3. Real-time Referral Check logic
+  useEffect(() => {
+    const checkCode = async () => {
+      if (!formData.refCode || formData.refCode.length < 6) {
+        setRefStatus('idle');
+        return;
+      }
+
+      setRefStatus('checking');
+      try {
+        // Calls your backend route to check if code exists
+        const res = await axios.get(`/api/auth/validate-ref/${formData.refCode}`);
+        if (res.data.valid) {
+          setRefStatus('valid');
+          setRefOwner(res.data.owner);
+        } else {
+          setRefStatus('invalid');
+        }
+      } catch (err) {
+        setRefStatus('invalid');
+      }
+    };
+
+    const debounceTimer = setTimeout(checkCode, 600); // 600ms debounce
+    return () => clearTimeout(debounceTimer);
+  }, [formData.refCode]);
+
+  // Handle Input Changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'email' ? value.toLowerCase().trim() : value
+      [name]: name === 'email' ? value.toLowerCase().trim() : 
+               name === 'refCode' ? value.toUpperCase().trim() : value
     }));
-  };
-
-  // --- Neural Identity Validation ---
-  const validateEmailProvider = (email) => {
-    const domain = email.split('@')[1]?.toLowerCase();
-    const authorizedProviders = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com', 'live.com', 'msn.com'];
-    const tempKeywords = ['mailinator', 'temp', 'disposable', '10minutemail', 'guerrilla', 'sharklasers', 'proton.me'];
-
-    const isAuthorized = authorizedProviders.includes(domain);
-    const isTemp = tempKeywords.some(kw => domain?.includes(kw));
-
-    if (isTemp) return { valid: false, msg: "Temporary neural links prohibited." };
-    
-    // allow authorized providers OR custom professional domains (if not containing temp keywords)
-    return { valid: true };
   };
 
   const handleSubmit = async (e) => {
@@ -85,7 +116,7 @@ export default function Auth() {
     setError("");
     setMessage("");
 
-    // 1. Handling OTP Verification Stage
+    // --- CASE A: OTP VERIFICATION ---
     if (isOtpSent) {
       if (otp.length < 6) return setError("Incomplete verification code.");
       setLoading(true);
@@ -93,38 +124,40 @@ export default function Auth() {
         const response = await verifyOtp({ email: formData.email, otp });
         if (response.data.token) {
           localStorage.setItem('token', response.data.token);
-          setMessage("Identity verified. Welcome to the network.");
+          localStorage.setItem('userId', response.data.user?.id);
+          localStorage.setItem('userName', response.data.user?.name);
+          setMessage("Identity verified. Accessing Neural Network...");
           setTimeout(() => navigate('/dashboard'), 1500);
         }
       } catch (err) {
         setError(err.response?.data?.message || "Invalid or expired code.");
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
       return;
     }
 
-    // 2. Handling Registration Start
+    // --- CASE B: REGISTRATION START ---
     if (authMode === 'register') {
-      const emailValidation = validateEmailProvider(formData.email);
-      if (!emailValidation.valid) return setError(emailValidation.msg);
       if (formData.password !== formData.confirmPassword) return setError("Security keys do not match.");
-      if (formData.password.length < 6) return setError("Key must be 6+ characters.");
+      if (formData.password.length < 6) return setError("Security key must be 6+ characters.");
+      
+      // Block registration if code is provided but invalid
+      if (formData.refCode && refStatus === 'invalid') {
+        return setError("Please remove or correct the invalid referral code.");
+      }
 
       setLoading(true);
       try {
+        // Sends name, email, password, contact, AND refCode
         await register(formData);
         setIsOtpSent(true);
         setMessage("Verification code dispatched to your inbox.");
       } catch (err) {
         setError(err.response?.data?.message || "Initialization failed.");
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
       return;
     }
 
-    // 3. Handling Login
+    // --- CASE C: LOGIN ---
     if (authMode === 'login') {
       setLoading(true);
       try {
@@ -138,22 +171,19 @@ export default function Auth() {
         }
       } catch (err) {
         setError(err.response?.data?.message || "Access denied. Check credentials.");
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
+      return;
     }
 
-    // 4. Password Reset
+    // --- CASE D: FORGOT PASSWORD ---
     if (authMode === 'forgot') {
       setLoading(true);
       try {
         await requestPasswordReset(formData.email);
         setMessage("Recovery sequence initiated. Check your inbox.");
       } catch (err) {
-        setError(err.response?.data?.message || "Recovery failure.");
-      } finally {
-        setLoading(false);
-      }
+        setError("Recovery sequence failed.");
+      } finally { setLoading(false); }
     }
   };
 
@@ -168,7 +198,6 @@ export default function Auth() {
 
       <div className="w-full max-w-xl relative z-10">
         <div className="bg-[#0b031a]/60 backdrop-blur-3xl p-8 md:p-12 rounded-[2.5rem] border border-white/10 shadow-2xl relative overflow-hidden">
-          
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
 
           <div className="text-center mb-10">
@@ -216,7 +245,36 @@ export default function Auth() {
                     />
                     
                     {authMode === 'register' && (
-                      <AuthInput icon={Lock} label="Confirm Key" name="confirmPassword" type={showPassword ? "text" : "password"} placeholder="••••••••" required onChange={handleInputChange} />
+                      <>
+                        <AuthInput icon={Lock} label="Confirm Key" name="confirmPassword" type={showPassword ? "text" : "password"} placeholder="••••••••" required onChange={handleInputChange} />
+                        
+                        {/* --- REFERRAL PROTOCOL FIELD --- */}
+                        <div className="pt-2">
+                           <AuthInput 
+                             icon={Gift} 
+                             label="Referral Code (Optional)" 
+                             name="refCode" 
+                             type="text" 
+                             placeholder="PROMO CODE" 
+                             value={formData.refCode}
+                             onChange={handleInputChange}
+                             statusIcon={refStatus === 'checking' ? Loader2 : refStatus === 'valid' ? CheckCircle2 : refStatus === 'invalid' ? X : null}
+                             statusColor={refStatus === 'valid' ? 'text-emerald-400' : refStatus === 'invalid' ? 'text-red-400' : 'text-slate-500'}
+                           />
+                           
+                           {/* Status Messages */}
+                           {refStatus === 'valid' && (
+                             <p className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest mt-2 ml-1 animate-pulse">
+                               Verified Node: Referred by {refOwner || 'Operator'} • +50 Tokens Added
+                             </p>
+                           )}
+                           {refStatus === 'invalid' && (
+                             <p className="text-[9px] text-red-400 font-bold uppercase tracking-widest mt-2 ml-1">
+                               Invalid Protocol Code
+                             </p>
+                           )}
+                        </div>
+                      </>
                     )}
 
                     {authMode === 'login' && (
@@ -250,10 +308,6 @@ export default function Auth() {
             {isOtpSent ? (
               <button type="button" onClick={() => setIsOtpSent(false)} className="text-xs font-black text-purple-400 hover:text-white uppercase tracking-widest transition-colors">
                 Edit Identity Details
-              </button>
-            ) : authMode === 'forgot' ? (
-              <button type="button" onClick={() => setAuthMode('login')} className="flex items-center gap-2 mx-auto text-xs font-black text-purple-400 hover:text-white uppercase tracking-widest transition-colors">
-                <ChevronLeft size={14} /> Back to Terminal
               </button>
             ) : (
               <p className="text-slate-500 text-xs font-black uppercase tracking-widest">

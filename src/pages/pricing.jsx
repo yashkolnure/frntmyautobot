@@ -1,300 +1,162 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Check, X, CreditCard, Shield, Zap, ArrowRight, Info,  Loader2 } from 'lucide-react';
+import React from 'react';
+import { 
+  Zap, Gift, Users, CheckCircle, ArrowRight, 
+  Rocket, ShieldCheck, Globe, Coins, Database, Activity
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const TokenRefillCard = ({ amount, price, bonus, highlight, ctaText }) => (
+  <div className={`relative p-8 lg:p-10 rounded-[3rem] transition-all duration-500 flex flex-col h-full border ${
+    highlight 
+      ? 'bg-gradient-to-br from-[#1a0b2e] via-[#2d0b5a] to-[#0b031a] border-purple-500 shadow-[0_0_40px_rgba(168,85,247,0.3)] scale-105 z-10' 
+      : 'bg-white/5 border-white/10 hover:border-purple-500/30'
+  }`}>
+    {highlight && (
+      <div className="absolute -top-5 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-purple-500 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
+        Recommended Refill
+      </div>
+    )}
+
+    <div className="mb-8">
+      <h3 className="text-xl font-black text-slate-400 uppercase tracking-widest mb-2 italic">Refill Protocol</h3>
+      <div className="flex items-baseline gap-1">
+        <span className="text-5xl font-black text-white italic tracking-tighter">{amount}</span>
+        <span className="text-slate-500 font-bold uppercase text-xs tracking-widest ml-2">Tokens</span>
+      </div>
+    </div>
+
+    <div className="p-4 bg-white/5 rounded-2xl border border-white/5 mb-8">
+      <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1">Acquisition Cost</p>
+      <p className="text-xl font-black text-white italic">{price}</p>
+    </div>
+
+    <ul className="space-y-4 mb-10 flex-1">
+      <li className="flex items-start gap-3 text-sm font-medium text-slate-300">
+        <CheckCircle size={16} className="text-purple-500 shrink-0 mt-0.5" />
+        One-time payment, no subscription
+      </li>
+      <li className="flex items-start gap-3 text-sm font-medium text-slate-300">
+        <CheckCircle size={16} className="text-purple-500 shrink-0 mt-0.5" />
+        {bonus ? `Includes ${bonus} Bonus Tokens` : "Instant balance synchronization"}
+      </li>
+      <li className="flex items-start gap-3 text-sm font-medium text-slate-300">
+        <CheckCircle size={16} className="text-purple-500 shrink-0 mt-0.5" />
+        Official Meta Partner API access
+      </li>
+    </ul>
+
+    <button className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all text-center italic ${
+      highlight 
+        ? 'bg-purple-600 text-white shadow-xl hover:bg-purple-500' 
+        : 'bg-white/10 text-white hover:bg-white/20'
+    }`}>
+      {ctaText}
+    </button>
+  </div>
+);
 
 const PricingPage = () => {
-  const navigate = useNavigate();
-  const [isAnnual, setIsAnnual] = useState(true);
-  const [currency, setCurrency] = useState('INR'); 
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const GST_RATE = 0.18;
-  const USD_EXCHANGE = 85; 
-
-  const tiers = [
-    {
-      id: 'starter',
-      name: "Starter Plan",
-      monthlyINR: 0,
-      annualINR: 0,
-      tokens: "500",
-      model: "Llama 3.2 3B",
-      details: "Basic AI setup for personal websites and testing.",
-      features: [
-        "Website Chat Automation",
-        "500 Monthly Tokens",
-        "Llama 3.2 (3B) AI Model",
-        "Standard Bot Professionalism",
-        "Basic Lead Extraction (Name/Email)",
-        "Standard Response Speed",
-        "7-Day Chat History Storage",
-        "Email Support"
-      ],
-      color: "border-slate-800",
-      button: "Start Free",
-    },
-    {
-      id: 'pro',
-      name: "Pro Plan",
-      monthlyINR: 799,
-      annualINR: 4999,
-      tokens: "5,000",
-      model: "Qwen 2.5 7B",
-      details: "Advanced automation for growing business sales.",
-      features: [
-        "WhatsApp Chat Automation",
-        "Telegram Chat Automation",
-        "5,000 Monthly Tokens",
-        "Smart Qwen 2.5 (7B) AI Model",
-        "Train AI with 10 PDF/Text Files",
-        "Enhanced Bot Professionalism",
-        "Priority Response Speed",
-        "Lifetime Lead Data Storage",
-        "Personal Chatbot Web Link",
-        "Priority Email Support"
-      ],
-      color: "border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.1)]",
-      button: "Choose Pro",
-      popular: true
-    },
-    {
-      id: 'enterprise',
-      name: "Enterprise Plan",
-      monthlyINR: 1299,
-      annualINR: 7999,
-      tokens: "50,000",
-      model: "Llama 3.3 70B",
-      details: "Maximum power for agencies and large companies.",
-      features: [
-        "Instagram Chat Automation",
-        "Facebook Messenger Automation",
-        "50,000 Monthly Tokens",
-        "Expert Llama 3.3 (70B) AI Model",
-        "Private Dedicated VPS Server",
-        "Maximum Bot Professionalism",
-        "Instant Ultra-Fast Responses",
-        "Auto-Train AI from Website URL",
-        "Full API & Webhook Access",
-        "24/7 Dedicated Manager Support"
-      ],
-      color: "border-emerald-500/30",
-      button: "Choose Enterprise",
-    }
-  ];
-
-  const formatPrice = (amount) => {
-    const val = currency === 'USD' ? amount / USD_EXCHANGE : amount;
-    return new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
-      style: 'currency',
-      currency: currency,
-      maximumFractionDigits: currency === 'USD' ? 2 : 0,
-    }).format(val);
-  };
-
-  const calculateInvoice = (plan) => {
-    const subtotal = isAnnual ? plan.annualINR : plan.monthlyINR;
-    const tax = subtotal * GST_RATE;
-    const total = subtotal + tax;
-    const savings = isAnnual ? (plan.monthlyINR * 12) - plan.annualINR : 0;
-    return { subtotal, tax, total, savings };
-  };
-
-  const handlePayment = () => {
-    setIsProcessing(true);
-    // Simulate payment gateway delay
-    setTimeout(() => {
-      setIsProcessing(false);
-      setSelectedPlan(null);
-      navigate('/dashboard'); // Move to the app
-    }, 2000);
-  };
-
   return (
-    <div className="min-h-screen bg-[#05010d] text-white pt-32 pb-20 px-6 font-sans selection:bg-purple-500/30">
-      
-      {/* Background Ambience */}
+    <div className="min-h-screen bg-[#05010d] pt-32 lg:pt-40 pb-24 relative overflow-hidden">
+      {/* --- AMBIENT BLOBS --- */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.08),transparent_70%)]"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[80vw] h-[80vh] bg-purple-900/10 blur-[150px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vh] bg-blue-900/10 blur-[120px] rounded-full" />
       </div>
 
-      <div className="container mx-auto max-w-7xl relative z-10">
+      <div className="container mx-auto px-6 relative z-10">
+        
         {/* --- HEADER --- */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter mb-4">
-            MyAutoBot <span className="text-purple-500">Pricing</span>
+        <div className="text-center max-w-4xl mx-auto mb-24">
+          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mb-10 italic">
+            <Activity size={14} className="text-purple-500" /> Token Economy v1.0
+          </div>
+          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-[0.85] mb-8">
+            Start For <span className="text-purple-400">Free.</span> <br />
+            Refill As You <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-purple-600">Scale.</span>
           </h1>
-          <p className="text-slate-400 text-xs font-black uppercase tracking-[0.3em] mb-10 opacity-60">Secure your computational node</p>
-          
-          <div className="flex flex-col md:flex-row items-center justify-center gap-8">
-            {/* Currency Switch */}
-            <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
-              {['INR', 'USD'].map((c) => (
-                <button 
-                  key={c} 
-                  onClick={() => setCurrency(c)} 
-                  className={`px-5 py-2 rounded-lg text-[10px] font-black tracking-widest transition-all ${currency === c ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
+          <p className="text-xl text-slate-400 font-medium leading-relaxed max-w-2xl mx-auto">
+            No monthly contracts. No hidden fees. Experience the power of MyAutoBot with a massive welcome bonus.
+          </p>
+        </div>
 
-            {/* Billing Toggle */}
-            <div className="flex items-center gap-4">
-              <span className={`text-[10px] font-black uppercase tracking-widest ${!isAnnual ? 'text-white' : 'text-slate-600'}`}>Monthly</span>
-              <button 
-                onClick={() => setIsAnnual(!isAnnual)} 
-                className="w-14 h-7 bg-white/5 border border-white/10 rounded-full p-1 relative transition-all"
-              >
-                <div className={`w-5 h-5 bg-purple-600 rounded-full transition-all duration-300 ${isAnnual ? 'translate-x-7' : 'translate-x-0'}`}></div>
-              </button>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${isAnnual ? 'text-white' : 'text-slate-600'}`}>
-                Yearly <span className="text-emerald-500 ml-1">SAVE HUGE</span>
-              </span>
+        {/* --- THE STARTER BUNDLES (WELCOME & REFERRAL) --- */}
+        <div className="grid md:grid-cols-2 gap-8 mb-24">
+          {/* Welcome Bonus Card */}
+          <div className="bg-gradient-to-br from-purple-600/20 to-transparent p-10 rounded-[3.5rem] border border-purple-500/30 relative overflow-hidden group">
+            <div className="relative z-10">
+              <div className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center mb-8 shadow-[0_0_30px_rgba(168,85,247,0.4)] group-hover:rotate-12 transition-transform">
+                <Gift size={32} className="text-white" />
+              </div>
+              <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-2">Registration Reward</p>
+              <h3 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4">+500 Welcome Tokens</h3>
+              <p className="text-slate-400 font-medium leading-relaxed">
+                Immediately power your first <span className="text-white font-bold">100 AI Interactions</span> for free upon system initialization.
+              </p>
+            </div>
+            <div className="absolute -right-10 -bottom-10 opacity-5 text-white group-hover:scale-110 transition-transform duration-700">
+               <Rocket size={250} />
+            </div>
+          </div>
+
+          {/* Referral Card */}
+          <div className="bg-gradient-to-br from-blue-600/20 to-transparent p-10 rounded-[3.5rem] border border-blue-500/30 relative overflow-hidden group">
+            <div className="relative z-10">
+              <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-8 shadow-[0_0_30px_rgba(59,130,246,0.4)] group-hover:rotate-12 transition-transform">
+                <Users size={32} className="text-white" />
+              </div>
+              <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Network Expansion</p>
+              <h3 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4">+50 Referral Yield</h3>
+              <p className="text-slate-400 font-medium leading-relaxed">
+                Expand the MyAutoBot grid. Receive <span className="text-white font-bold">50 Tokens</span> for every verified node that joins using your code.
+              </p>
+            </div>
+            <div className="absolute -right-10 -bottom-10 opacity-5 text-white group-hover:scale-110 transition-transform duration-700">
+               <Globe size={250} />
             </div>
           </div>
         </div>
 
-        {/* --- PLAN CARDS --- */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {tiers.map((plan) => (
-            <div 
-              key={plan.id} 
-              className={`relative bg-[#0b031a]/60 backdrop-blur-3xl p-10 rounded-[3rem] border transition-all duration-500 group hover:-translate-y-2 flex flex-col ${plan.color}`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[8px] font-black px-6 py-2 rounded-full uppercase tracking-[0.3em] shadow-xl">
-                  Best Value Node
-                </div>
-              )}
-              
-              <div className="mb-8">
-                <h3 className="text-2xl font-black uppercase italic tracking-tight mb-2">{plan.name}</h3>
-                <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">{plan.details}</p>
+        
+
+        {/* --- SYSTEM LOGIC EXPLAINER --- */}
+        <section className="py-20 px-10 rounded-[4rem] bg-[#0b031a]/60 backdrop-blur-3xl border border-white/10 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
+          <div className="relative z-10 max-w-4xl mx-auto">
+            <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-12">How The Economy Operates</h2>
+            <div className="grid md:grid-cols-3 gap-10">
+              <div className="p-6 bg-black/40 rounded-3xl border border-white/5">
+                <Coins className="mx-auto mb-4 text-purple-400" size={32} />
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Interaction Cost</p>
+                <p className="text-2xl font-black text-white italic">5 TOKENS</p>
+                <p className="text-[10px] text-slate-500 mt-2 font-medium">Per AI Response</p>
               </div>
-
-              <div className="mb-8 flex items-baseline gap-2">
-                <span className="text-5xl font-black italic">
-                  {formatPrice(isAnnual ? plan.annualINR / 12 : plan.monthlyINR)}
-                </span>
-                <span className="text-slate-600 text-[10px] font-black uppercase tracking-widest">/ month</span>
+              <div className="p-6 bg-black/40 rounded-3xl border border-white/5">
+                <Database className="mx-auto mb-4 text-emerald-400" size={32} />
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Lead Storage</p>
+                <p className="text-2xl font-black text-white italic">FREE</p>
+                <p className="text-[10px] text-slate-500 mt-2 font-medium">Capture Unlimited Data</p>
               </div>
-
-              {/* Specs Grid */}
-              <div className="mb-8 grid grid-cols-2 gap-4 border-y border-white/5 py-6">
-                 <div>
-                    <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest mb-1">Token Limit</p>
-                    <p className="text-sm font-black text-white italic">{plan.tokens}</p>
-                 </div>
-                 <div>
-                    <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest mb-1">AI Engine</p>
-                    <p className="text-[9px] font-black text-purple-400 uppercase tracking-widest">{plan.model}</p>
-                 </div>
+              <div className="p-6 bg-black/40 rounded-3xl border border-white/5">
+                <ShieldCheck className="mx-auto mb-4 text-blue-400" size={32} />
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Meta Partner</p>
+                <p className="text-2xl font-black text-white italic">VERIFIED</p>
+                <p className="text-[10px] text-slate-500 mt-2 font-medium">Official API Sync</p>
               </div>
-
-              {/* Features List */}
-              <ul className="space-y-4 mb-10 flex-1">
-                {plan.features.map((f, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
-                    <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest group-hover:text-slate-200 transition-colors">
-                      {f}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <button 
-                onClick={() => setSelectedPlan(plan)} 
-                className={`w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 italic ${
-                  plan.popular 
-                    ? 'bg-purple-600 text-white shadow-xl shadow-purple-900/30 hover:bg-purple-500' 
-                    : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
-                }`}
-              >
-                {plan.button} <ArrowRight size={14} />
-              </button>
             </div>
-          ))}
-        </div>
+            
+            <div className="mt-16">
+              <Link 
+                to="/login" 
+                className="inline-flex px-12 py-5 bg-white text-black rounded-2xl font-black text-lg uppercase tracking-widest shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:scale-105 transition-all active:scale-95 italic gap-3 items-center"
+              >
+                Deploy My 500 Tokens <ArrowRight size={24} />
+              </Link>
+            </div>
+          </div>
+        </section>
+
       </div>
-
-      {/* --- INVOICE MODAL --- */}
-      {selectedPlan && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="bg-[#0b031a] border border-white/10 w-full max-w-md rounded-[3rem] p-10 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
-            
-            <button 
-              onClick={() => setSelectedPlan(null)} 
-              className="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors"
-            >
-              <X size={24}/>
-            </button>
-            
-            <h2 className="text-2xl font-black uppercase italic mb-8 text-white tracking-tighter">Order Summary</h2>
-
-            <div className="space-y-6 mb-10">
-              <div className="flex justify-between items-end pb-6 border-b border-white/5">
-                <div>
-                  <p className="text-[10px] font-black text-purple-500 uppercase tracking-[0.2em] mb-1">{selectedPlan.name}</p>
-                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                    {isAnnual ? '12 Months Commitment' : '1 Month Subscription'}
-                  </p>
-                </div>
-                <p className="text-2xl font-black italic text-white">
-                  {formatPrice(calculateInvoice(selectedPlan).subtotal)}
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">
-                  <span>Plan Subtotal</span>
-                  <span>{formatPrice(calculateInvoice(selectedPlan).subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.2em]">
-                  <span className="text-slate-500">Government GST (18%)</span>
-                  <span className="text-emerald-500">+{formatPrice(calculateInvoice(selectedPlan).tax)}</span>
-                </div>
-                {isAnnual && calculateInvoice(selectedPlan).savings > 0 && (
-                   <div className="flex justify-between text-[10px] font-black uppercase text-emerald-500 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
-                     <span>Annual Savings Applied</span>
-                     <span>-{formatPrice(calculateInvoice(selectedPlan).savings)}</span>
-                   </div>
-                )}
-              </div>
-
-              <div className="pt-6 border-t border-white/10 flex justify-between items-center">
-                <span className="text-xs font-black uppercase tracking-[0.2em] text-white opacity-60">Grand Total</span>
-                <span className="text-4xl font-black italic text-white leading-none">
-                    {formatPrice(calculateInvoice(selectedPlan).total)}
-                </span>
-              </div>
-            </div>
-
-            <button 
-              onClick={handlePayment}
-              disabled={isProcessing}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 py-6 rounded-2xl text-white font-black text-xs uppercase tracking-[0.4em] flex items-center justify-center gap-3 transition-all shadow-xl shadow-emerald-900/20 italic"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="animate-spin" size={20} /> Processing...
-                </>
-              ) : (
-                <>
-                  <CreditCard size={20} /> Authorize & Pay
-                </>
-              )}
-            </button>
-            
-            <p className="text-[8px] text-center mt-8 text-slate-600 font-black uppercase tracking-[0.4em]">
-              Secured by Avenirya Solutions OPC Pvt Ltd • 256-bit SSL
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

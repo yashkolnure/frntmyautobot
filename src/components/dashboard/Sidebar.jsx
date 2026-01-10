@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Bot, MessageSquare, Settings, LogOut, 
-  Share2, Users, Terminal, Coins, Zap , Key
+  Share2, Users, Terminal, Coins, Zap , Key, DollarSign
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, onLogout, userTokens = 0 }) {
@@ -63,6 +63,13 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, userTokens 
           label="API Keys" 
           active={activeTab === 'apikeys'}
           onClick={() => setActiveTab('apikeys')}
+        />
+
+        <SidebarItem 
+          icon={<DollarSign size={20}/>} 
+          label="Earn Tokens" 
+          active={activeTab === 'referral'}
+          onClick={() => setActiveTab('referral')}
         />
         {/* --- NEW: NEURAL CREDITS LINK --- */}
         <SidebarItem 

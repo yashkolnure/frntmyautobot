@@ -9,6 +9,7 @@ import { saveConfig, getConfig } from '../api';
 // COMPONENT IMPORTS
 import Sidebar from '../components/dashboard/Sidebar';
 import TrainingView from '../components/dashboard/TrainingView';
+import ReferAndEarnView from '../components/dashboard/ReferAndEarnView';
 import HistoryView from '../components/dashboard/HistoryView';
 import DeploymentView from '../components/dashboard/DeploymentView';
 import LeadsView from '../components/dashboard/LeadsView';
@@ -154,6 +155,7 @@ useEffect(() => {
             
             {activeTab === 'history' && <HistoryView />}
             {activeTab === 'leads' && <LeadsView />}
+            {activeTab === 'referral' && <ReferAndEarnView userId={userId} />}
             {activeTab === 'deployment' && ( <DeploymentView userId={userId} />
               )}
               {activeTab === 'apikeys' && (

@@ -70,7 +70,7 @@ const DeveloperPortal = () => {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700 pb-10">
+    <div className="space-y-6 pb-10">
       
       {/* --- HERO SECTION --- */}
       <div className="bg-gradient-to-br from-purple-900/20 to-black border border-white/10 rounded-3xl p-8 relative overflow-hidden">

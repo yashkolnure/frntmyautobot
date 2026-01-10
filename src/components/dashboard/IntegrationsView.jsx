@@ -144,7 +144,7 @@ window.FB.login(
 
 
   return (
-    <div className="space-y-8 pb-20 max-w-4xl mx-auto">
+    <div className="space-y-8 pb-20  mx-auto">
       <h2 className="text-2xl font-black text-white uppercase flex gap-2 items-center">
         Integrations <Sparkles className="text-purple-500" />
       </h2>

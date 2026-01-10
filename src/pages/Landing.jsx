@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   MessageSquare, Instagram, Facebook, Globe, Zap, Database, 
   ShieldCheck, Clock, ArrowRight, ChevronDown, ChevronUp, Star, 
-  CheckCircle, XCircle, Mail, User, Sparkles, 
-  LayoutTemplate, BarChart3, Rocket, Cpu, Share2, Terminal,Bot, Utensils, Wrench, ShoppingBag, Briefcase, 
+  CheckCircle, XCircle, Mail, User, Sparkles, Code,
+  LayoutTemplate, BarChart3, Rocket, Cpu, Share2, Terminal,Bot, Utensils, Wrench, ShoppingBag, Briefcase, CheckCircle2,CheckCircle1
 } from 'lucide-react';
 
 // --- THE AMBIENT BACKGROUND COMPONENT ---
@@ -36,7 +36,21 @@ const LandingPage = () => {
   const [activeStep, setActiveStep] = useState(0);
 
   const toggleFaq = (index) => setActiveFaq(activeFaq === index ? null : index);
-  
+  const handleTrialStart = () => {
+    // link to trial signup page
+    window.location.href = "/login";
+  };
+
+  const integrations = [
+    { name: "WhatsApp", icon: <MessageSquare />, color: "hover:text-green-400 hover:border-green-500/50" },
+    { name: "Instagram", icon: <Instagram />, color: "hover:text-fuchsia-400 hover:border-fuchsia-500/50" },
+    { name: "Messenger", icon: <Facebook />, color: "hover:text-blue-400 hover:border-blue-500/50" },
+    { name: "n8n Workflows", icon: <Zap />, color: "hover:text-orange-400 hover:border-orange-500/50" },
+    { name: "Custom API", icon: <Code />, color: "hover:text-cyan-400 hover:border-cyan-500/50" },
+    { name: "Custom Bot", icon: <Cpu />, color: "hover:text-purple-400 hover:border-purple-500/50" },
+    { name: "Any Website", icon: <Globe />, color: "hover:text-emerald-400 hover:border-emerald-500/50" },
+  ];
+
   // Auto-rotate steps
   useEffect(() => {
     const timer = setInterval(() => setActiveStep((prev) => (prev + 1) % 3), 4000);
@@ -51,128 +65,178 @@ const LandingPage = () => {
 
       {/* --- CONTENT LAYER (Z-INDEX 10 sits above the glow) --- */}
       <div className="relative z-10">
-        
-       {/* --- 1️⃣ HERO SECTION --- */}
-<section className="pt-32 pb-20 container mx-auto px-6 text-center lg:text-left grid lg:grid-cols-12 gap-16 items-center  relative z-10">
-  {/* Text Content (65% width) */}
+  {/* --- 1️⃣ MODERNIZED HERO SECTION --- */}
+<section className="pt-32 pb-20 container mx-auto px-6 text-center lg:text-left grid lg:grid-cols-12 gap-16 items-center relative z-10">
+  
+  {/* COLUMN 1: TEXT CONTENT (65%) */}
   <div className="lg:col-span-8">
-    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-purple-500/50 text-purple-300 text-xs font-bold mb-8 uppercase tracking-[0.2em] backdrop-blur-md shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-      <Cpu className="w-4 h-4 animate-pulse" /> AI-Powered Lead Capture
+    {/* --- PARTNERSHIP BADGES --- */}
+    <div className="flex flex-wrap justify-center lg:justify-start gap-3 mb-8">
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/50 text-blue-400 text-[10px] font-black uppercase tracking-widest backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.2)] animate-pulse">
+        <ShieldCheck className="w-3.5 h-3.5" /> Official Meta Partner
+      </div>
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-purple-500/50 text-purple-300 text-[10px] font-black uppercase tracking-widest backdrop-blur-md">
+        <Cpu className="w-3.5 h-3.5" /> Next-Gen AI Node
+      </div>
     </div>
-    <h1 className="text-5xl lg:text-[3.5rem] font-black tracking-tight mb-8 leading-[0.95] text-white drop-shadow-xl">
-     Always Reply to Customers <br />
-      <span className="text-transparent text-5xl  bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-purple-600">
-        Even When You’re Offline
+
+    {/* --- MAIN HEADLINE --- */}
+    <h1 className="text-5xl lg:text-[4.2rem] font-black tracking-tighter mb-8 leading-[0.9] text-white drop-shadow-2xl">
+      Never Miss a Lead <br />
+      <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-purple-600">
+        Even While You Sleep.
       </span>
     </h1>
-    <p className="text-xl text-slate-300 mb-10 max-w-lg leading-relaxed mx-auto lg:mx-0">
-      Your customers are messaging you 24/7. MyAutoBot replies instantly, answers questions, and saves customer details automatically.
+
+    <p className="text-lg lg:text-xl text-slate-400 mb-10 max-w-xl leading-relaxed mx-auto lg:mx-0 font-medium">
+      The world's first <span className="text-white">Official Meta Tech Provider</span> platform that automates your WhatsApp & Instagram chats with human-like intelligence.
     </p>
-    <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-      <button className="group relative overflow-hidden px-6 py-3 bg-purple-600 text-white rounded-xl font-black text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center gap-2">
-        Start Free Now <ArrowRight className="group-hover:translate-x-1 transition-transform" />
+
+    {/* --- CTA BUTTONS --- */}
+    <div className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start items-center">
+      <button onClick={handleTrialStart} className="group relative overflow-hidden px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl font-black text-sm uppercase tracking-[0.15em] shadow-[0_0_30px_rgba(168,85,247,0.4)] flex items-center gap-3 transition-all active:scale-95">
+        Start Your Free Trial <ArrowRight className="group-hover:translate-x-1 transition-transform" />
       </button>
+      
+      <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-slate-300 font-bold text-xs uppercase tracking-widest">
+        <Zap className="text-yellow-400 w-4 h-4" /> 5 Tokens / Request
+      </div>
     </div>
-    <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-6 text-sm font-bold text-purple-300/70 uppercase tracking-wider">
-      <span className="flex items-center gap-2"><CheckCircle className="w-4 h-4"/> Free Setup</span>
-      <span className="flex items-center gap-2"><CheckCircle className="w-4 h-4"/> No Credit Card</span>
-      <span className="flex items-center gap-2"><CheckCircle className="w-4 h-4"/> Cancel Anytime</span>
+
+    {/* --- TECH PROVIDER FOOTER --- */}
+    <div className="mt-12 flex items-center justify-center lg:justify-start gap-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.25em]">
+      <span className="h-[1px] w-8 bg-white/10"></span>
+      Tech Provider: <span className="text-slate-300">Avenirya Solutions OPC Pvt Ltd</span>
     </div>
   </div>
 
-      {/* COLUMN 2: REDESIGNED CHAT SIMULATION (35%) */}
-      <div className="lg:col-span-4 relative group">
-        <div className="absolute inset-0 bg-purple-600/20 blur-[100px] rounded-full group-hover:bg-purple-600/30 transition-all duration-700"></div>
-        
-        {/* Glassmorphism Phone Frame */}
-        <div className="relative bg-[#0b031a]/90 border-[4px] border-white/10 rounded-[3rem] shadow-2xl overflow-hidden aspect-[9/13] flex flex-col backdrop-blur-3xl">
-          
-          {/* Top Bar */}
-          <div className="bg-white/5 p-6 pb-4 border-b border-white/10 flex items-center gap-3 backdrop-blur-md">
-            <div className="w-10 h-10 bg-gradient-to-tr from-purple-600 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg border border-white/20">
+  {/* COLUMN 2: PREMIUM CHAT SIMULATION (35%) */}
+  <div className="lg:col-span-4 relative group">
+    {/* Background Glows */}
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-600/20 blur-[120px] rounded-full transition-all duration-700 group-hover:bg-purple-600/30"></div>
+    
+    {/* Phone Frame */}
+    <div className="relative bg-[#0b031a]/80 border-[6px] border-white/10 rounded-[3.5rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden aspect-[9/14] flex flex-col backdrop-blur-3xl transition-transform duration-500 group-hover:scale-[1.02]">
+      
+      {/* Top Bar (Meta Verified Style) */}
+      <div className="bg-white/5 p-6 pb-4 border-b border-white/10 flex items-center justify-between backdrop-blur-md">
+        <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg border border-white/20">
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-white font-black text-xs uppercase tracking-widest">MyAutoBot AI</p>
-              <p className="text-green-400 text-[10px] font-black uppercase flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Agent Active
-              </p>
-            </div>
-          </div>
-
-          {/* Chat Messages Area - Plain Background */}
-          <div className="flex-1 p-5 space-y-6 overflow-y-auto bg-[#0b031a]">
-            
-            {/* User Inquiry */}
-            <div className="flex flex-col items-start animate-[fadeIn_0.5s_ease-out_0.2s_both]">
-                <div className="bg-white/5 text-slate-200 p-4 rounded-2xl rounded-bl-none text-xs max-w-[85%] border border-white/10 shadow-sm">
-                  Hi! I'm interested in booking a consultation for my team.
-                </div>
-            </div>
-
-            {/* AI Qualifying & Ask */}
-            <div className="flex flex-col items-end animate-[fadeIn_0.5s_ease-out_1.2s_both]">
-                <div className="bg-purple-600 text-white p-4 rounded-2xl rounded-br-none text-xs max-w-[85%] shadow-lg shadow-purple-900/20">
-                  I'd love to help! What's your <b>Email</b> or <b>WhatsApp</b> number so I can send our available slots?
-                </div>
-            </div>
-
-            {/* User Provides Data */}
-            <div className="flex flex-col items-start animate-[fadeIn_0.5s_ease-out_2.2s_both]">
-                <div className="bg-white/5 text-slate-200 p-4 rounded-2xl rounded-bl-none text-xs max-w-[85%] border border-white/10 shadow-sm">
-                  Sure, it's <b>alex@agency.com</b>
-                </div>
-            </div>
-
-            {/* AI EXTRACTION SUCCESS CARD */}
-            <div className="relative pt-4 animate-[fadeIn_0.5s_ease-out_3.0s_both]">
-              <div className="absolute inset-0 bg-purple-500/10 blur-2xl animate-pulse"></div>
-              <div className="relative bg-black/60 border-2 border-purple-500/40 p-4 rounded-2xl flex items-center gap-4 shadow-2xl">
-                <div className="bg-purple-600 p-2.5 rounded-xl shadow-[0_0_15px_rgba(168,85,247,0.5)]">
-                  <Database className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  <div className="flex justify-between items-center mb-1">
-                     <p className="text-[10px] text-purple-300 font-black uppercase tracking-widest">Lead Captured</p>
-                     <CheckCircle className="w-4 h-4 text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]" />
-                  </div>
-                  <div className="bg-white/5 rounded-lg px-3 py-1.5 border border-white/5">
-                     <p className="text-white font-mono text-[11px] truncate">alex@agency.com</p>
-                  </div>
+              <div className="flex items-center gap-1.5">
+                <p className="text-white font-black text-[11px] uppercase tracking-wider">myAutoBot AI</p>
+                <div className="bg-blue-500 p-0.5 rounded-full">
+                    <CheckCircle2 size={10} className="text-white" />
                 </div>
               </div>
+              <p className="text-green-400 text-[9px] font-black uppercase tracking-tighter">Official Tech Partner</p>
             </div>
-          </div>
-
-          {/* Input Bar Mockup */}
-          <div className="p-5 bg-white/5 border-t border-white/10 backdrop-blur-md flex gap-3 items-center">
-            <div className="flex-1 h-9 bg-black/40 rounded-full border border-white/10 flex items-center px-4 text-[10px] text-slate-500 uppercase tracking-widest font-bold">
-               AI is handling this chat...
-            </div>
-            <div className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center opacity-40">
-              <Rocket className="w-4 h-4 text-white" />
-            </div>
-          </div>
-
+        </div>
+        <div className="flex gap-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
         </div>
       </div>
+
+      {/* Chat Messages */}
+      <div className="flex-1 p-5 space-y-6 overflow-y-auto bg-transparent">
+        {/* User */}
+        <div className="flex flex-col items-start animate-[fadeIn_0.5s_both_0.5s]">
+            <div className="bg-white/10 text-slate-200 p-4 rounded-2xl rounded-bl-none text-xs max-w-[85%] border border-white/5 shadow-sm font-medium">
+              Do you have a specialized plan for Agencies?
+            </div>
+        </div>
+
+        {/* AI (Partner Response) */}
+        <div className="flex flex-col items-end animate-[fadeIn_0.5s_both_1.5s]">
+            <div className="bg-purple-600 text-white p-4 rounded-2xl rounded-br-none text-xs max-w-[85%] shadow-xl shadow-purple-900/40 leading-relaxed">
+              Yes! As a <span className="font-black underline decoration-white/30">Meta Tech Provider</span>, we offer White-Label API access for agencies. Want our pricing sheet?
+            </div>
+        </div>
+
+        {/* User provides lead */}
+        <div className="flex flex-col items-start animate-[fadeIn_0.5s_both_2.5s]">
+            <div className="bg-white/10 text-slate-200 p-4 rounded-2xl rounded-bl-none text-xs max-w-[85%] border border-white/5 font-medium">
+              Yes please! Send it to <b>hello@agency.com</b>
+            </div>
+        </div>
+
+        {/* Extraction Success UI */}
+        <div className="relative pt-4 animate-[fadeIn_0.5s_both_3.5s]">
+          <div className="bg-emerald-500/10 border border-emerald-500/40 p-4 rounded-2xl flex items-center gap-4">
+            <div className="bg-emerald-500 p-2 rounded-xl">
+              <Database className="w-5 h-5 text-black" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] text-emerald-400 font-black uppercase tracking-widest mb-1">Lead Captured</p>
+              <p className="text-white font-mono text-[11px]">hello@agency.com</p>
+            </div>
+            <CheckCircle2 className="text-emerald-500 w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Input Bar */}
+      <div className="p-6 bg-white/5 border-t border-white/10 flex gap-3 items-center">
+        <div className="flex-1 h-10 bg-black/40 rounded-full border border-white/10 flex items-center px-4 text-[10px] text-slate-500 uppercase tracking-[0.2em] font-black italic">
+           Secured by Avenirya
+        </div>
+        <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center shadow-lg">
+          <Rocket className="w-5 h-5 text-white" />
+        </div>
+      </div>
+
+    </div>
+  </div>
 </section>
 
-        {/* --- 2️⃣ SOCIAL PROOF --- */}
-        <section className="py-16">
-          <div className="container mx-auto px-6 text-center">
-            <p className="text-purple-300 text-xs font-black uppercase tracking-[0.3em] mb-10 drop-shadow-lg">Works Where Your Customers Already Chat</p>
-            <div className="flex flex-wrap justify-center gap-8 md:gap-16 items-center opacity-70 hover:opacity-100 transition-opacity">
-               {/* Icons with subtle glow on hover */}
-               <div className="flex items-center gap-3 text-xl font-bold hover:text-green-400 transition-colors hover:drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]"><MessageSquare /> WhatsApp</div>
-               <div className="flex items-center gap-3 text-xl font-bold hover:text-fuchsia-400 transition-colors hover:drop-shadow-[0_0_10px_rgba(232,121,249,0.5)]"><Instagram /> Instagram</div>
-               <div className="flex items-center gap-3 text-xl font-bold hover:text-blue-400 transition-colors hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.5)]"><Facebook /> Messenger</div>
-               <div className="flex items-center gap-3 text-xl font-bold hover:text-purple-400 transition-colors hover:drop-shadow-[0_0_10px_rgba(192,132,252,0.5)]"><Globe /> Website</div>
-            </div>
-          </div>
-        </section>
+<section className="py-20 relative overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/2  -translate-x-1/2 -translate-y-1/2 w-full h-full rounded-full bg-purple-600/5 blur-[120px] pointer-events-none" />
 
-        {/* --- 3️⃣ PROBLEM SECTION --- */}
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="text-center mb-16">
+          <p className="text-purple-400 text-[10px] font-black uppercase tracking-[0.4em] mb-4">
+            Unified Ecosystem
+          </p>
+          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase italic">
+            Connect <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-500">Everything</span>
+          </h2>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+          {integrations.map((item, idx) => (
+            <div 
+              key={idx}
+              className={`
+                group flex items-center gap-4 px-6 py-4 
+                bg-white/5 border border-white/10 rounded-2xl 
+                text-slate-400 font-bold transition-all duration-300 
+                hover:bg-white/10 hover:-translate-y-1 
+                ${item.color}
+              `}
+            >
+              <div className="group-hover:scale-110 transition-transform duration-300">
+                {item.icon}
+              </div>
+              <span className="text-sm md:text-base tracking-tight uppercase italic">{item.name}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Optional: Connecting Line Text */}
+        <div className="mt-12 flex items-center justify-center gap-4 opacity-30">
+          <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-white" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-white italic">Protocol Interconnected</p>
+          <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-white" />
+        </div>
+      </div>
+    </section>
+    
+    
+            {/* --- 3️⃣ PROBLEM SECTION --- */}
         <section className="py-20 container mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center ">
           <div className="order-2 lg:order-1">
              {/* Illustration: The Overwhelmed Phone */}
@@ -780,8 +844,8 @@ const LandingPage = () => {
 
           {/* Responsive Button - Tighter Sizing */}
           <div className="w-full sm:w-auto">
-            <button className="w-full sm:w-auto px-10 py-5 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl font-black text-lg lg:text-xl uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(168,85,247,0.4)] flex items-center justify-center gap-3 active:scale-95 group/btn">
-              Start Free Trial 
+            <button onClick={handleTrialStart} className="w-full sm:w-auto px-10 py-5 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl font-black text-lg lg:text-xl uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(168,85,247,0.4)] flex items-center justify-center gap-3 active:scale-95 group/btn">
+              Start Free Trial
               <ArrowRight className="w-6 h-6 group-hover/btn:translate-x-1 transition-transform" />
             </button>
           </div>

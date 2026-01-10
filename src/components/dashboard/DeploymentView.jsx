@@ -87,7 +87,7 @@ export default function DeploymentView() {
   }
 
   return (
-    <div className="space-y-8  max-w-7xl mx-auto pb-20 px-4 md:px-0">
+    <div className="space-y-8  mx-auto pb-20 px-4 md:px-0">
       
       {/* 1. TOP HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
