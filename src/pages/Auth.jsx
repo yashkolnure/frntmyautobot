@@ -7,7 +7,7 @@ import {
 import axios from 'axios';
 import { login, register, verifyOtp, requestPasswordReset } from '../api'; 
 
-// --- Reusable Input Sub-component with Status Indicators ---
+// --- Reusable Input Sub-component ---
 const AuthInput = ({ icon: Icon, label, togglePassword, showPassword, statusIcon: StatusIcon, statusColor, ...props }) => (
   <div className="space-y-1.5">
     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">
@@ -28,7 +28,6 @@ const AuthInput = ({ icon: Icon, label, togglePassword, showPassword, statusIcon
           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       )}
-      {/* Validation Status Indicator */}
       {StatusIcon && (
         <div className={`absolute right-4 top-1/2 -translate-y-1/2 ${statusColor}`}>
           <StatusIcon size={18} className={StatusIcon === Loader2 ? "animate-spin" : ""} />
@@ -57,7 +56,7 @@ export default function Auth() {
   });
 
   // --- REFERRAL VALIDATION STATES ---
-  const [refStatus, setRefStatus] = useState('idle'); // idle, checking, valid, invalid
+  const [refStatus, setRefStatus] = useState('idle'); 
   const [refOwner, setRefOwner] = useState("");
 
   // 1. Redirect if already authenticated
@@ -65,26 +64,34 @@ export default function Auth() {
     if (localStorage.getItem('token')) navigate('/dashboard');
   }, [navigate]);
 
-  // 2. Capture Referral Code from URL on Mount
+  // 2. SYNC AUTH MODE WITH URL (?id=register or ?id=login)
+  useEffect(() => {
+    const idParam = searchParams.get('id');
+    if (idParam === 'register') {
+      setAuthMode('register');
+    } else if (idParam === 'login') {
+      setAuthMode('login');
+    }
+  }, [searchParams]);
+
+  // 3. Capture Referral Code from URL on Mount
   useEffect(() => {
     const urlRef = searchParams.get('ref');
     if (urlRef) {
       setFormData(prev => ({ ...prev, refCode: urlRef.toUpperCase() }));
-      setAuthMode('register'); // Auto-switch to registration
+      setAuthMode('register'); 
     }
   }, [searchParams]);
 
-  // 3. Real-time Referral Check logic
+  // 4. Real-time Referral Check logic
   useEffect(() => {
     const checkCode = async () => {
       if (!formData.refCode || formData.refCode.length < 6) {
         setRefStatus('idle');
         return;
       }
-
       setRefStatus('checking');
       try {
-        // Calls your backend route to check if code exists
         const res = await axios.get(`/api/auth/validate-ref/${formData.refCode}`);
         if (res.data.valid) {
           setRefStatus('valid');
@@ -96,12 +103,10 @@ export default function Auth() {
         setRefStatus('invalid');
       }
     };
-
-    const debounceTimer = setTimeout(checkCode, 600); // 600ms debounce
+    const debounceTimer = setTimeout(checkCode, 600);
     return () => clearTimeout(debounceTimer);
   }, [formData.refCode]);
 
-  // Handle Input Changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -111,12 +116,20 @@ export default function Auth() {
     }));
   };
 
+  const handleToggleMode = () => {
+    const newMode = authMode === 'login' ? 'register' : 'login';
+    setAuthMode(newMode);
+    setError("");
+    setMessage("");
+    // Update URL to reflect the state change
+    navigate(`/login?id=${newMode}`, { replace: true });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setMessage("");
 
-    // --- CASE A: OTP VERIFICATION ---
     if (isOtpSent) {
       if (otp.length < 6) return setError("Incomplete verification code.");
       setLoading(true);
@@ -135,19 +148,13 @@ export default function Auth() {
       return;
     }
 
-    // --- CASE B: REGISTRATION START ---
     if (authMode === 'register') {
       if (formData.password !== formData.confirmPassword) return setError("Security keys do not match.");
       if (formData.password.length < 6) return setError("Security key must be 6+ characters.");
-      
-      // Block registration if code is provided but invalid
-      if (formData.refCode && refStatus === 'invalid') {
-        return setError("Please remove or correct the invalid referral code.");
-      }
+      if (formData.refCode && refStatus === 'invalid') return setError("Please remove or correct the invalid referral code.");
 
       setLoading(true);
       try {
-        // Sends name, email, password, contact, AND refCode
         await register(formData);
         setIsOtpSent(true);
         setMessage("Verification code dispatched to your inbox.");
@@ -157,7 +164,6 @@ export default function Auth() {
       return;
     }
 
-    // --- CASE C: LOGIN ---
     if (authMode === 'login') {
       setLoading(true);
       try {
@@ -175,7 +181,6 @@ export default function Auth() {
       return;
     }
 
-    // --- CASE D: FORGOT PASSWORD ---
     if (authMode === 'forgot') {
       setLoading(true);
       try {
@@ -231,47 +236,29 @@ export default function Auth() {
                   </>
                 )}
                 
-                <AuthInput 
-                  icon={Mail} label="Neural Identity" name="email" type="email" 
-                  placeholder="name@gmail.com" required value={formData.email} onChange={handleInputChange} 
-                />
+                <AuthInput icon={Mail} label="Neural Identity" name="email" type="email" placeholder="name@gmail.com" required value={formData.email} onChange={handleInputChange} />
 
                 {authMode !== 'forgot' && (
                   <>
-                    <AuthInput 
-                      icon={Lock} label="Security Key" name="password" 
-                      type={showPassword ? "text" : "password"} placeholder="••••••••" required 
-                      onChange={handleInputChange} togglePassword={() => setShowPassword(!showPassword)} showPassword={showPassword}
-                    />
+                    <AuthInput icon={Lock} label="Security Key" name="password" type={showPassword ? "text" : "password"} placeholder="••••••••" required onChange={handleInputChange} togglePassword={() => setShowPassword(!showPassword)} showPassword={showPassword} />
                     
                     {authMode === 'register' && (
                       <>
                         <AuthInput icon={Lock} label="Confirm Key" name="confirmPassword" type={showPassword ? "text" : "password"} placeholder="••••••••" required onChange={handleInputChange} />
                         
-                        {/* --- REFERRAL PROTOCOL FIELD --- */}
                         <div className="pt-2">
                            <AuthInput 
-                             icon={Gift} 
-                             label="Referral Code (Optional)" 
-                             name="refCode" 
-                             type="text" 
-                             placeholder="PROMO CODE" 
-                             value={formData.refCode}
-                             onChange={handleInputChange}
+                             icon={Gift} label="Referral Code (Optional)" name="refCode" type="text" placeholder="PROMO CODE" value={formData.refCode} onChange={handleInputChange}
                              statusIcon={refStatus === 'checking' ? Loader2 : refStatus === 'valid' ? CheckCircle2 : refStatus === 'invalid' ? X : null}
                              statusColor={refStatus === 'valid' ? 'text-emerald-400' : refStatus === 'invalid' ? 'text-red-400' : 'text-slate-500'}
                            />
-                           
-                           {/* Status Messages */}
                            {refStatus === 'valid' && (
                              <p className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest mt-2 ml-1 animate-pulse">
                                Verified Node: Referred by {refOwner || 'Operator'} • +50 Tokens Added
                              </p>
                            )}
                            {refStatus === 'invalid' && (
-                             <p className="text-[9px] text-red-400 font-bold uppercase tracking-widest mt-2 ml-1">
-                               Invalid Protocol Code
-                             </p>
+                             <p className="text-[9px] text-red-400 font-bold uppercase tracking-widest mt-2 ml-1">Invalid Protocol Code</p>
                            )}
                         </div>
                       </>
@@ -312,7 +299,7 @@ export default function Auth() {
             ) : (
               <p className="text-slate-500 text-xs font-black uppercase tracking-widest">
                 {authMode === 'login' ? "New Operator?" : "Existing Node?"}
-                <button type="button" onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-purple-400 hover:text-white transition-colors ml-2 underline decoration-purple-500/30 underline-offset-4">
+                <button type="button" onClick={handleToggleMode} className="text-purple-400 hover:text-white transition-colors ml-2 underline decoration-purple-500/30 underline-offset-4">
                   {authMode === 'login' ? 'Register Account' : 'Login Instead'}
                 </button>
               </p>

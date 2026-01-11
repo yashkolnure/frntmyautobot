@@ -164,7 +164,7 @@ const HowItWorks = () => {
         {/* --- FINAL CTA --- */}
         <div className="text-center">
           <Link 
-            to="/login" 
+            to="/login?id=register" 
             className="inline-flex px-12 py-6 bg-purple-600 text-white rounded-2xl font-black text-xl lg:text-2xl uppercase tracking-[0.1em] italic transition-all hover:bg-purple-500 hover:scale-105 active:scale-95 items-center gap-4 shadow-[0_20px_50px_rgba(168,85,247,0.4)]"
           >
             Launch Your Instance <Rocket size={28} />

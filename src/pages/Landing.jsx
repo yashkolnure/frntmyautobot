@@ -38,7 +38,7 @@ const LandingPage = () => {
   const toggleFaq = (index) => setActiveFaq(activeFaq === index ? null : index);
   const handleTrialStart = () => {
     // link to trial signup page
-    window.location.href = "/login";
+    window.location.href = "/login?id=register";
   };
 
   const integrations = [

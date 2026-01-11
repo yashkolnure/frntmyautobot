@@ -193,7 +193,7 @@ const FeaturesPage = () => {
             System Ready for <span className="text-purple-500">Deployment.</span>
           </h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Link to="/login" className="px-12 py-5 bg-purple-600 text-white rounded-2xl font-black text-lg uppercase tracking-widest shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:bg-purple-500 transition-all active:scale-95 flex items-center gap-3 italic">
+            <Link to="/login?id=register" className="px-12 py-5 bg-purple-600 text-white rounded-2xl font-black text-lg uppercase tracking-widest shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:bg-purple-500 transition-all active:scale-95 flex items-center gap-3 italic">
               Initialize Node <Rocket size={20} />
             </Link>
             <div className="text-slate-500 font-black text-[10px] uppercase tracking-[0.3em]">

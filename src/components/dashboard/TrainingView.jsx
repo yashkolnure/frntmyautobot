@@ -182,7 +182,7 @@ Your primary communication language is ${language || "English"}.
     <div className="min-h-screen bg-transparent text-zinc-300 font-sans selection:bg-indigo-500/30 p-4 md:p-8">
 
 
-      <main className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <main className=" mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* LEFT: CORE CONFIG (Full on Mobile, 8-col on Desktop) */}
         <div className="lg:col-span-8 space-y-6">
@@ -304,7 +304,7 @@ Your primary communication language is ${language || "English"}.
       </main>
 
       {/* FOOTER ACTION BAR: Non-Sticky, Mobile Stackable */}
-      <footer className="max-w-[1400px] mx-auto mt-12 pt-6 border-t border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between pb-12">
+      <footer className="mx-auto mt-12 pt-6 border-t border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between pb-12">
         <p className="text-zinc-600 italic text-[9px] uppercase tracking-widest">Syncing to Avenirya Neural Nodes</p>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <button 

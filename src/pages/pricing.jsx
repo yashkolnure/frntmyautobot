@@ -147,7 +147,7 @@ const PricingPage = () => {
             
             <div className="mt-16">
               <Link 
-                to="/login" 
+                to="/login?id=register" 
                 className="inline-flex px-12 py-5 bg-white text-black rounded-2xl font-black text-lg uppercase tracking-widest shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:scale-105 transition-all active:scale-95 italic gap-3 items-center"
               >
                 Deploy My 500 Tokens <ArrowRight size={24} />
