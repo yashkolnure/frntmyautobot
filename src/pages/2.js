@@ -27,7 +27,7 @@ const WhatsAppReviewDashboard = () => {
     setStatus({ type: 'loading', msg: 'Initiating Cloud API Request...' });
     setLastResponse(null);
 
-    const url = `https://graph.facebook.com/v24.0/${PHONE_NUMBER_ID}/messages`;
+    const url = `https://graph.facebook.com/v24.0/1001284909724845/messages`;
     
     const payload = {
       messaging_product: "whatsapp",
@@ -45,7 +45,7 @@ const WhatsAppReviewDashboard = () => {
     try {
       const response = await axios.post(url, payload, {
         headers: {
-          'Authorization': `Bearer ${ACCESS_TOKEN}`,
+          'Authorization': `Bearer EAAMzS47eOugBQSj77BxJl8Ll5fe0QLck8RVboNN7M7LtBHTcrmiLC4omEQrndBA2DQF0r8ROFSLXSdA3spsbyqUofLHe6NKhS91ZANCv9qtkck19fYKPkZADNaaidgROGpZC0UFw7ZC4ujKDuc7S5ike8tlNtC2gXC2aroI3sZB7OFQ0W8W5PjQbLJdbN75dM5TkzLwJl4gJKyLYGcOXvieb9rPG0t1kiDeYOC2GcFYQlqlZCFZC7WcycYD2twDQbD0zdZCYKEoeqcQzGsr9av3StLcfYmXonKZChAwZDZD`,
           'Content-Type': 'application/json'
         }
       });
