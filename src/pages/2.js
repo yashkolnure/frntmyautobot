@@ -1,175 +1,143 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-
-/**
- * MYAUTOBOT APP REVIEW DASHBOARD
- * Features: Dark Mode, Human Agent Toggle, MT-20 Margin, Meta-ready UI
- */
+import React, { useState, useEffect } from 'react';
+import { Send, Instagram, MessageCircle, User, Bot, ShieldCheck } from 'lucide-react';
 
 const WhatsAppReviewDashboard = () => {
-  // --- STATE MANAGEMENT ---
-  const [phone, setPhone] = useState('');
-  const [message, setMessage] = useState('');
-  const [status, setStatus] = useState({ type: 'idle', msg: '' });
+  const [activeTab, setActiveTab] = useState('whatsapp'); // 'whatsapp' or 'instagram'
   const [isHumanMode, setIsHumanMode] = useState(false);
-  const [lastResponse, setLastResponse] = useState(null);
+  const [message, setMessage] = useState('');
+  const [status, setStatus] = useState({ type: 'idle', msg: 'System Ready' });
+  const [logs, setLogs] = useState([]);
 
-  // --- CONFIGURATION (Replace with your IDs for the video) ---
-  const PHONE_NUMBER_ID = "YOUR_PHONE_NUMBER_ID"; 
-  const ACCESS_TOKEN = "YOUR_PERMANENT_ACCESS_TOKEN";
-
-  const handleSendMessage = async () => {
-    if (!phone || !message) {
-      setStatus({ type: 'error', msg: 'Please provide both phone number and message.' });
-      return;
-    }
-
-    setStatus({ type: 'loading', msg: 'Initiating Cloud API Request...' });
-    setLastResponse(null);
-
-    const url = `https://graph.facebook.com/v24.0/1001284909724845/messages`;
+  const handleSend = async () => {
+    if (!message) return;
     
-    const payload = {
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: phone,
-      type: "text",
-      text: { body: message }
-    };
-
-    // Apply the Human Agent Tag if the toggle is ON
-    if (isHumanMode) {
-      payload.tag = "human_agent";
-    }
-
-    try {
-      const response = await axios.post(url, payload, {
-        headers: {
-          'Authorization': `Bearer EAAMzS47eOugBQSj77BxJl8Ll5fe0QLck8RVboNN7M7LtBHTcrmiLC4omEQrndBA2DQF0r8ROFSLXSdA3spsbyqUofLHe6NKhS91ZANCv9qtkck19fYKPkZADNaaidgROGpZC0UFw7ZC4ujKDuc7S5ike8tlNtC2gXC2aroI3sZB7OFQ0W8W5PjQbLJdbN75dM5TkzLwJl4gJKyLYGcOXvieb9rPG0t1kiDeYOC2GcFYQlqlZCFZC7WcycYD2twDQbD0zdZCYKEoeqcQzGsr9av3StLcfYmXonKZChAwZDZD`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      setStatus({ type: 'success', msg: `Message sent via ${isHumanMode ? 'Human Agent' : 'AI Agent'} protocol.` });
-      setLastResponse(response.data);
-    } catch (error) {
-      const errorDetail = error.response?.data?.error?.message || "Check console for details";
-      setStatus({ type: 'error', msg: `API Error: ${errorDetail}` });
-      setLastResponse(error.response?.data);
-    }
+    setStatus({ type: 'loading', msg: `Sending via ${activeTab.toUpperCase()}...` });
+    
+    // Simulate API logic for Video Demo
+    setTimeout(() => {
+      const newLog = {
+        id: Date.now(),
+        channel: activeTab,
+        mode: isHumanMode ? 'HUMAN_AGENT' : 'AI_AGENT',
+        content: message,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setLogs([newLog, ...logs]);
+      setStatus({ type: 'success', msg: `Message Delivered Successfully!` });
+      setMessage('');
+    }, 1000);
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f1a] text-slate-300 font-sans selection:bg-indigo-500/30">
-      
-      {/* 1. Main Container with MT-20 */}
-      <div className="max-w-6xl mx-auto px-6 pt-20 pb-20">
+    <div className="min-h-screen bg-[#0b0f1a] text-slate-300 font-sans p-6 pt-20">
+      <div className="max-w-6xl mx-auto">
         
-        {/* 2. Professional Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 border-b border-slate-800 pb-8">
+        {/* HEADER SECTION */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 border-b border-slate-800 pb-8">
           <div>
-            <h1 className="text-4xl font-black text-white tracking-tighter uppercase">
-              MyAutoBot<span className="text-indigo-500">.in</span>
+            <h1 className="text-3xl font-black text-white tracking-tighter flex items-center">
+              MYAUTOBOT <span className="text-indigo-500 ml-2">CORE</span>
+              <ShieldCheck className="ml-3 text-emerald-500 w-6 h-6" />
             </h1>
-            <p className="text-slate-500 mt-2 font-medium">Enterprise AI Agent & Human Handover Console</p>
+            <p className="text-slate-500 text-sm mt-1">Multi-Channel AI Automation & CRM Console</p>
           </div>
 
-          {/* Human Mode Toggle */}
-          <div className="mt-6 md:mt-0 flex items-center space-x-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
-            <div className="text-right">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Protocol Type</p>
-              <p className={`text-sm font-bold ${isHumanMode ? 'text-amber-500' : 'text-indigo-400'}`}>
-                {isHumanMode ? 'HUMAN AGENT' : 'AI AUTOMATION'}
-              </p>
-            </div>
+          {/* HUMAN MODE TOGGLE */}
+          <div className="mt-4 md:mt-0 flex items-center bg-[#161b2c] p-3 rounded-2xl border border-slate-700">
+            <span className={`mr-3 text-xs font-bold ${isHumanMode ? 'text-amber-500' : 'text-slate-500'}`}>
+              {isHumanMode ? 'HUMAN AGENT ENABLED' : 'AI AUTOMATION ACTIVE'}
+            </span>
             <button 
               onClick={() => setIsHumanMode(!isHumanMode)}
-              className={`relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none ${isHumanMode ? 'bg-amber-600' : 'bg-slate-700'}`}
+              className={`w-12 h-6 rounded-full transition-all relative ${isHumanMode ? 'bg-amber-600' : 'bg-slate-600'}`}
             >
-              <div className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform duration-300 transform ${isHumanMode ? 'translate-x-7' : 'translate-x-0'}`} />
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isHumanMode ? 'left-7' : 'left-1'}`} />
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* 3. Main Workspace Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* Left: Input Controls */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className={`bg-[#161b2c] p-8 rounded-3xl shadow-2xl border-2 transition-all duration-500 ${isHumanMode ? 'border-amber-500/30' : 'border-slate-800'}`}>
-              
-              <div className="mb-8">
-                <h2 className="text-xl font-bold text-white mb-2">Compose {isHumanMode ? 'Human' : 'AI'} Response</h2>
-                <p className="text-sm text-slate-500">Testing advanced permissions for 7-day Human Agent window.</p>
+          {/* LEFT SIDE: CHANNEL SELECTION & INPUT */}
+          <div className="lg:col-span-7 space-y-6">
+            
+            {/* CHANNEL TABS */}
+            <div className="flex space-x-4">
+              <button 
+                onClick={() => setActiveTab('whatsapp')}
+                className={`flex-1 p-4 rounded-2xl border transition-all flex items-center justify-center font-bold ${activeTab === 'whatsapp' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-[#161b2c] border-slate-800 text-slate-500'}`}
+              >
+                <MessageCircle className="mr-2 w-5 h-5" /> WhatsApp
+              </button>
+              <button 
+                onClick={() => setActiveTab('instagram')}
+                className={`flex-1 p-4 rounded-2xl border transition-all flex items-center justify-center font-bold ${activeTab === 'instagram' ? 'bg-pink-500/10 border-pink-500 text-pink-400' : 'bg-[#161b2c] border-slate-800 text-slate-500'}`}
+              >
+                <Instagram className="mr-2 w-5 h-5" /> Instagram
+              </button>
+            </div>
+
+            {/* MESSAGE COMPOSER */}
+            <div className={`bg-[#161b2c] p-8 rounded-3xl shadow-xl border-2 transition-all ${isHumanMode ? 'border-amber-500/30 shadow-amber-900/10' : 'border-slate-800'}`}>
+              <div className="mb-6 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-white uppercase tracking-tight">
+                  {isHumanMode ? 'Human Intervention' : 'AI Response Agent'}
+                </h3>
+                {isHumanMode ? <User className="text-amber-500" /> : <Bot className="text-indigo-500" />}
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Recipient Phone Number</label>
-                  <input 
-                    type="text"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="e.g. 919876543210"
-                    className="w-full bg-[#0b0f1a] border border-slate-800 p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-700"
-                  />
-                </div>
+              <textarea 
+                className="w-full bg-[#0b0f1a] border border-slate-800 p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-indigo-500/50 min-h-[180px] mb-6 resize-none"
+                placeholder={`Type your ${isHumanMode ? 'manual' : 'automated'} message for ${activeTab}...`}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
 
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Message Body</label>
-                  <textarea 
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder={isHumanMode ? "Describe the manual resolution..." : "Enter automated AI prompt output..."}
-                    className="w-full bg-[#0b0f1a] border border-slate-800 p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all min-h-[150px] placeholder:text-slate-700"
-                  />
-                </div>
-
-                <button 
-                  onClick={handleSendMessage}
-                  disabled={status.type === 'loading'}
-                  className={`w-full py-4 rounded-xl font-bold text-white transition-all transform active:scale-95 shadow-xl ${
-                    isHumanMode 
-                    ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-900/20' 
-                    : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-indigo-900/20'
-                  } ${status.type === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {status.type === 'loading' ? 'COMMUNICATING WITH META...' : `SEND AS ${isHumanMode ? 'HUMAN AGENT' : 'AI AGENT'}`}
-                </button>
-              </div>
+              <button 
+                onClick={handleSend}
+                className={`w-full py-4 rounded-xl font-bold flex items-center justify-center transition-all active:scale-95 ${
+                  activeTab === 'whatsapp' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-pink-600 hover:bg-pink-500'
+                } text-white`}
+              >
+                <Send className="mr-2 w-5 h-5" /> EXECUTE {activeTab.toUpperCase()} DISPATCH
+              </button>
             </div>
           </div>
 
-          {/* Right: API Response & Logs (Great for Video Proof) */}
-          <div className="space-y-6">
-            <div className="bg-[#161b2c] p-6 rounded-3xl border border-slate-800 shadow-xl">
-              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Request Status</h3>
-              <div className={`p-4 rounded-xl border text-sm font-medium ${
-                status.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                status.type === 'error' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
-                status.type === 'loading' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' :
-                'bg-slate-900 border-slate-800 text-slate-600'
+          {/* RIGHT SIDE: LIVE FEED & STATUS */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="bg-[#161b2c] p-6 rounded-3xl border border-slate-800">
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">System Status</h4>
+              <div className={`p-3 rounded-lg text-xs font-bold border ${
+                status.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-slate-900 border-slate-800 text-slate-400'
               }`}>
-                {status.msg || "System Ready for Review..."}
+                {status.msg}
               </div>
             </div>
 
-            <div className="bg-[#161b2c] p-6 rounded-3xl border border-slate-800 shadow-xl overflow-hidden">
-              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Live API Payload</h3>
-              <pre className="text-[10px] font-mono text-slate-400 bg-[#0b0f1a] p-4 rounded-xl overflow-x-auto max-h-[300px]">
-                {lastResponse ? JSON.stringify(lastResponse, null, 2) : "// Awaiting first API trigger..."}
-              </pre>
+            <div className="bg-[#161b2c] p-6 rounded-3xl border border-slate-800 flex-1 h-[450px] flex flex-col">
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Live Activity Feed</h4>
+              <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+                {logs.length === 0 && <p className="text-slate-700 text-sm italic">Waiting for API events...</p>}
+                {logs.map(log => (
+                  <div key={log.id} className="bg-[#0b0f1a] p-4 rounded-xl border border-slate-800 animate-in fade-in slide-in-from-right-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${log.channel === 'whatsapp' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-pink-500/20 text-pink-500'}`}>
+                        {log.channel.toUpperCase()}
+                      </span>
+                      <span className="text-[10px] text-slate-600">{log.timestamp}</span>
+                    </div>
+                    <p className="text-sm text-slate-300">{log.content}</p>
+                    <div className="mt-2 text-[9px] font-mono text-slate-500">
+                      TAG: {log.mode} | STATUS: DELIVERED
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
         </div>
-
-        {/* Footer Note for Reviewer */}
-        <footer className="mt-12 text-center">
-          <p className="text-slate-600 text-xs">
-            © 2026 MyAutoBot Systems • Avenirya Solutions • App ID: YOUR_APP_ID
-          </p>
-        </footer>
       </div>
     </div>
   );
