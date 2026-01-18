@@ -23,7 +23,7 @@ const WhatsAppTester = () => {
         },
         {
           headers: { 
-            Authorization: `Bearer EAAMzS47eOugBQZAj7uOY4N6zBsMy7vnkTXKqyFZCKM2o1y0CgTtDJWFF5qwTBZBIsuPkxTYivQBTnoZBnNEg5AjWBgTUz3jBZASGUwRQTZAIwTKG9IZAadp5XbGvUbCBTZBbel7W2FRgHJYZA7AIaBMiJYiEKZCLwGIECiW7l5P18GYHo4yzlXee1aIaZBpWB3jp144wQG8KcIY52ClNe2OEwUNrzzMNkJvjxAP2JmE1Osadkxf6jKsieTYREDPZCrYLF1zrnZB7GimCRMyE7ZCvjoZCZADn4CJ6Bp3EaPrj42MZD`,
+            Authorization: `Bearer EAAMzS47eOugBQSj77BxJl8Ll5fe0QLck8RVboNN7M7LtBHTcrmiLC4omEQrndBA2DQF0r8ROFSLXSdA3spsbyqUofLHe6NKhS91ZANCv9qtkck19fYKPkZADNaaidgROGpZC0UFw7ZC4ujKDuc7S5ike8tlNtC2gXC2aroI3sZB7OFQ0W8W5PjQbLJdbN75dM5TkzLwJl4gJKyLYGcOXvieb9rPG0t1kiDeYOC2GcFYQlqlZCFZC7WcycYD2twDQbD0zdZCYKEoeqcQzGsr9av3StLcfYmXonKZChAwZDZD`,
             'Content-Type': 'application/json'
           }
         }
