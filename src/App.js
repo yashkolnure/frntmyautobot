@@ -26,6 +26,7 @@ import SuperAdmin from './pages/SuperAdmin';
 import NotFound from './pages/NotFound'; // 1. Import your new 404 Page
 import FAQPage from './pages/FAQPage.jsx';
 import WhatsAppTester from './pages/WhatsAppTester.js';
+import WhatsAppTester1 from './pages/1.js';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
           <Route path="/chatbot" element={<ChatbotPage />} />
           <Route path="/chat/:botId" element={<PublicChat />} />
           <Route path="/whatsapp" element={<WhatsAppTester />} />
+          <Route path="/chatwp" element={<WhatsAppTester1 />} />
           
           {/* Company & Support Pages */}
           <Route path="/about" element={<AboutUs />} />
