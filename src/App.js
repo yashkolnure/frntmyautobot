@@ -28,6 +28,7 @@ import FAQPage from './pages/FAQPage.jsx';
 import WhatsAppTester from './pages/WhatsAppTester.js';
 import WhatsAppTester1 from './pages/1.js';
 import WhatsAppReviewDashboard from './pages/2.js';
+import WhatsAppRegister from './pages/wareg.js';
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
           <Route path="/whatsapp" element={<WhatsAppTester />} />
           <Route path="/chatwp" element={<WhatsAppTester1 />} />
           <Route path="/wa-review" element={<WhatsAppReviewDashboard />} />
+          <Route path="/Y@sh@8767" element={<WhatsAppRegister />} />
           
           {/* Company & Support Pages */}
           <Route path="/about" element={<AboutUs />} />
