@@ -13,7 +13,7 @@ API.interceptors.request.use((req) => {
 });
 
 // --- AUTHENTICATION ROUTES ---
-export const login = (formData) => API.post('/auth/login', formData);
+export const login = (formData) => API.post('/api/auth/login', formData);
 export const register = (formData) => API.post('/auth/register', formData);
 export const requestPasswordReset = (email) => API.post('/auth/forgot-password', { email });
 export const resetPassword = (token, password) => API.post(`/auth/reset-password/${token}`, { password });
