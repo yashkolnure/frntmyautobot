@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // --- INITIALIZATION ---
-const API = axios.create({ baseURL: process.env.Backend_BASE + '/api' });
+const API = axios.create({ baseURL: process.env.Backend_BASE || '' + '/api' });
 
 // --- REQUEST INTERCEPTOR (JWT Injection) ---
 API.interceptors.request.use((req) => {
