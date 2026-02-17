@@ -102,7 +102,7 @@ export default function LeadsSection() {
           </div>
         </div>
       ) : (
-        <div className="bg-white/5 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden relative">
+        <div className="bg-white/5 backdrop-blur-3xl rounded-[1.5rem] border border-white/10 shadow-2xl overflow-hidden relative">
           {/* Subtle Scanline Effect on Table */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/5 to-transparent animate-[scan_8s_linear_infinite] pointer-events-none" />
           

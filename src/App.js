@@ -22,6 +22,7 @@ import APIDocs from './pages/APIDocs';
 import ChatbotPage from './pages/ChatbotPage';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import WhatsAppDashboard from './pages/whatsappdemo';
 import SuperAdmin from './pages/SuperAdmin';
 import NotFound from './pages/NotFound'; // 1. Import your new 404 Page
 import FAQPage from './pages/FAQPage.jsx';
@@ -29,6 +30,8 @@ import WhatsAppTester from './pages/WhatsAppTester.js';
 import WhatsAppTester1 from './pages/1.js';
 import WhatsAppReviewDashboard from './pages/2.js';
 import WhatsAppRegister from './pages/wareg.js';
+import KnowledgeBase from './pages/KnowledgeBase.jsx';
+import ChatInterface from './pages/ChatInterface.jsx';
 
 function App() {
   return (
@@ -43,10 +46,12 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/chatbot" element={<ChatbotPage />} />
           <Route path="/chat/:botId" element={<PublicChat />} />
-          <Route path="/whatsapp" element={<WhatsAppTester />} />
+          <Route path="/whatsappp" element={<WhatsAppTester />} />
           <Route path="/chatwp" element={<WhatsAppTester1 />} />
           <Route path="/wa-review" element={<WhatsAppReviewDashboard />} />
           <Route path="/Y@sh@8767" element={<WhatsAppRegister />} />
+          <Route path="/ykolnure" element={<KnowledgeBase />} />
+          <Route path="/chattest" element={<ChatInterface />} />
           
           {/* Company & Support Pages */}
           <Route path="/about" element={<AboutUs />} />
@@ -62,6 +67,7 @@ function App() {
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/yashkolnure" element={<SuperAdmin />} />
+          <Route path="/whatsapp" element={<WhatsAppDashboard />} />
 
           {/* 2. THE 404 CATCH-ALL ROUTE */}
           {/* This MUST be the last route in the list */}

@@ -111,7 +111,7 @@ export default function TokenPurchaseView({ userTokens = 0, onPurchase }) {
   };
 
   return (
-    <div className="w-full mx-auto pb-20 px-4 space-y-10 max-w-6xl text-zinc-300">
+    <div className="w-full mx-auto pb-20 px-4 space-y-10 text-zinc-300">
       
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-center border-b border-white/10 pb-6 gap-4">

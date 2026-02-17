@@ -20,6 +20,8 @@ export default function Layout({ children }) {
   const token = localStorage.getItem('token');
   const isDashboard = location.pathname.startsWith('/dashboard');
   const isPublicChat = location.pathname.startsWith('/chat/');
+  const isKnowledgeBase = location.pathname === '/ykolnure';
+  const iswhatsapp = location.pathname === '/whatsapp';
 
   // Route Protection logic (UNTOUCHED)
   if (isDashboard && !token) {
@@ -27,7 +29,7 @@ export default function Layout({ children }) {
   }
 
   // Dashboard & Public Chat Theme
-  if (isDashboard || isPublicChat) {
+  if (isDashboard || isPublicChat || isKnowledgeBase || iswhatsapp) {
     return (
       <div className="min-h-screen bg-[#05010d] text-slate-200 selection:bg-purple-500/90 relative overflow-x-hidden">
         {/* Ambient Glow layer */}

@@ -132,7 +132,7 @@ export default function HistoryView() {
             {/* Transcript Body */}
             <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-black/20 custom-scrollbar">
               {selectedConvo.messages.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-500`}>
+                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'} animate-in slide-in-from-bottom-2 duration-500`}>
                   <div className={`relative max-w-[85%] p-5 rounded-[1.8rem] text-sm font-medium shadow-2xl ${
                     msg.role === 'user' 
                       ? 'bg-purple-600 text-white rounded-tr-none shadow-purple-900/40' 
@@ -148,7 +148,7 @@ export default function HistoryView() {
             </div>
 
             {/* Modal Footer */}
-            <footer className="p-6 border-t border-white/5 bg-black/40 text-center">
+            <footer className="p-2 border-t border-white/5 bg-black/40 text-center">
                <div className="inline-flex items-center gap-2 text-[10px] text-slate-600 font-black uppercase tracking-[0.3em]">
                  <Sparkles size={12} className="text-purple-500/40" />
                  End of Secure Transcript

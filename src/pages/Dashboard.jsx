@@ -16,6 +16,7 @@ import LeadsView from '../components/dashboard/LeadsView';
 import IntegrationsView from '../components/dashboard/IntegrationsView';
 import APIKeysView from '../components/dashboard/APIKeysView';
 import TokenPurchaseView from '../components/dashboard/TokenPurchaseView';
+import ProfilePage from '../components/dashboard/ProfilePage';
 
 // --- THE AMBIENT BACKGROUND ---
 const FullPageAmbientGlow = () => (
@@ -157,6 +158,8 @@ useEffect(() => {
             {activeTab === 'leads' && <LeadsView />}
             {activeTab === 'referral' && <ReferAndEarnView userId={userId} />}
             {activeTab === 'deployment' && ( <DeploymentView userId={userId} />
+              )}
+            {activeTab === 'profile' && ( <ProfilePage userId={userId} />
               )}
               {activeTab === 'apikeys' && (
        <APIKeysView userId={userId} />

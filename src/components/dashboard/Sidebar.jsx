@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Bot, MessageSquare, Settings, LogOut, 
-  Share2, Users, Terminal, Coins, Zap , Key, DollarSign
+  Share2, Users, Terminal, Coins, Zap , Key, DollarSign, User, MessageCircle
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, onLogout, userTokens = 0 }) {
@@ -50,6 +50,12 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, userTokens 
           onClick={() => setActiveTab('history')}
         />
 
+        <SidebarItem 
+          icon={<MessageCircle size={20}/>} 
+          label="WhatsApp" 
+          onClick={() => window.location.href = '/whatsapp'} 
+        />
+
 
         <SidebarItem 
           icon={<Settings size={20}/>} 
@@ -77,6 +83,13 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, userTokens 
           label="Credits Refill" 
           active={activeTab === 'purchase'}
           onClick={() => setActiveTab('purchase')}
+        />
+        {/* --- NEW: MY PROFILE TAB --- */}
+        <SidebarItem 
+          icon={<User size={20}/>} 
+          label="My Profile" 
+          active={activeTab === 'profile'}
+          onClick={() => setActiveTab('profile')}
         />
       </nav>
 
@@ -135,8 +148,8 @@ function SidebarItem({ icon, label, active, onClick }) {
   return (
     <div 
       onClick={onClick}
-      className={`relative group flex items-center gap-3 p-3.5 lg:p-3 rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden ${
-        active 
+      className={`relative group flex items-center gap-2 p-3 lg:p-3 rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden ${
+        active  
           ? 'bg-purple-600 text-white shadow-[0_10px_30px_-10px_rgba(168,85,247,0.5)] scale-[1.02]' 
           : 'text-slate-200 hover:text-slate-100 hover:bg-white/5'
       }`}

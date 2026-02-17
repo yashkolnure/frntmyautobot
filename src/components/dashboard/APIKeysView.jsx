@@ -11,7 +11,7 @@ const DeveloperPortal = () => {
   const [showKey, setShowKey] = useState(false);
   
   const userId = localStorage.getItem('userId');
-  const API_BASE = "http://localhost:5000"; // Adjust as needed
+  const API_BASE = "http://127.0.0.1:5005"; // Adjust as needed
 
   const fetchUserData = useCallback(async () => {
     if (!userId) { setLoading(false); return; }

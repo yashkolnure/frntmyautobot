@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // --- INITIALIZATION ---
-const API = axios.create({ baseURL: process.env.REACT_APP_API_URL || '/api' });
+const API = axios.create({ baseURL: 'http://127.0.0.1:5005/api' });
 
 // --- REQUEST INTERCEPTOR (JWT Injection) ---
 API.interceptors.request.use((req) => {
