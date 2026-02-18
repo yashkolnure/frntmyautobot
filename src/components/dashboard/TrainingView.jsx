@@ -30,7 +30,7 @@ export default function BotEngine() {
   const [isSaving, setIsSaving] = useState(false);
   const [tokens, setTokens] = useState(0);
 
-  const API_BASE_URL = process.env.Backend_BASE + "/api/bot";
+  const API_BASE_URL = process.env.Backend_BASE || '' + "/api/bot";
 
 const MODEL_OPTIONS = [
   { value: "smollm2:135m", label: "SmolLM2 (135M • Ultra Fast)" },

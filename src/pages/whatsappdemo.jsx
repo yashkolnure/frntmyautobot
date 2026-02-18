@@ -18,7 +18,7 @@ const WhatsAppDashboard = () => {
   const [loadingToggle, setLoadingToggle] = useState(false);
 
   const chatEndRef = useRef(null);
-  const API_BASE = process.env.Backend_BASE + "/api/auth/webhook";
+  const API_BASE = process.env.Backend_BASE || '' + "/api/auth/webhook";
   const { phoneNumberId: PHONE_NUMBER_ID, metaToken: META_TOKEN } = credentials;
 
   useEffect(() => {
