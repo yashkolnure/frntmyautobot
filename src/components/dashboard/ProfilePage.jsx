@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 const ENGINE_API = "http://72.60.196.84:8000"; 
-const MAIN_API = "http://127.0.0.1:5005/api";
+const MAIN_API = process.env.Backend_BASE || '' + "/api";
 
 export default function ProfilePage({ userId: propUserId }) {
   const [profileData, setProfileData] = useState(null);
@@ -145,7 +145,7 @@ const handleDeleteKB = async (kbId) => {
   if (loading) return (
     <div className="h-screen w-full flex flex-col items-center justify-center">
       <Loader2 className="text-purple-500 animate-spin" size={40} />
-      <p className="text-[10px] font-black uppercase tracking-[0.5em] text-purple-400 mt-6">Initializing Profile</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.5em] text-purple-400 mt-6">Initiali zing Profile</p>
     </div>
   );
 
@@ -179,6 +179,7 @@ const handleDeleteKB = async (kbId) => {
         </div>
 
         {/* --- MAIN CONTENT --- */}
+
         <div className="lg:col-span-2 space-y-6 lg:space-y-8">
           
           {/* PROFILE EDIT SECTION */}
