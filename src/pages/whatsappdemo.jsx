@@ -19,6 +19,7 @@ const WhatsAppDashboard = () => {
 
   const chatEndRef = useRef(null);
   const API_BASE = process.env.Backend_BASE || '' + "/api/auth/webhook";
+  const API_BASE_URL = process.env.Backend_BASE || '' ; 
   const { phoneNumberId: PHONE_NUMBER_ID, metaToken: META_TOKEN } = credentials;
 
   useEffect(() => {
@@ -29,7 +30,7 @@ const WhatsAppDashboard = () => {
         const historyRes = await axios.get(`${API_BASE}/messages?userId=${userId}`);
         setConversations(historyRes.data);
 
-        const profileRes = await axios.get(`${API_BASE}/user-profile/${userId}`);
+        const profileRes = await axios.get(`${API_BASE_URL}/user-profile/${userId}`);
         const user = profileRes.data;
 
         setIsAutoReplyEnabled(user.botConfig?.isManualPromptEnabled || false);
