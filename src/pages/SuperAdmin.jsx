@@ -16,9 +16,9 @@ const T = {
 // ─────────────────────────────────────────────────────────────
 //  CONFIG
 // ─────────────────────────────────────────────────────────────
-const ADMIN_EMAIL    = "admin@yourdomain.com";
-const ADMIN_PASSWORD = "SuperSecret@2025";
-const API_BASE       = "http://127.0.0.1:5005/api/admin";
+const ADMIN_EMAIL    = "yashkolnure58@gmail.com";
+const ADMIN_PASSWORD = "Y@sh@8767";
+const API_BASE       = "/api/admin";
 const ADMIN_SECRET   = "dqweydoewufodiuweiofyuwyrufoiweufoiuowriufocyiwetidc";
 
 // ─────────────────────────────────────────────────────────────
