@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { login, register, verifyOtp, requestPasswordReset } from '../api';
+
+// ─── REPLACE WITH YOUR GOOGLE CLIENT ID ──────────────────────────────
+const GOOGLE_CLIENT_ID = '49239973229-bn71ef53e5gtsv2eu9etj5fe14l512q5.apps.googleusercontent.com';
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────
 const T = {
@@ -45,7 +48,137 @@ const GlobalCSS = () => (
     }
     .auth-input.has-right { padding-right:44px; }
     .auth-btn-ghost:hover { background:rgba(99,102,241,.1)!important; color:${T.purpleL}!important; }
+
+    .google-btn {
+      width:100%;
+      padding:13px 16px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.1);
+      background:rgba(255,255,255,0.05);
+      color:${T.t1};
+      font-size:14px;
+      font-weight:600;
+      font-family:${T.font};
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      transition:background .2s, border-color .2s, box-shadow .2s;
+      letter-spacing:.1px;
+    }
+    .google-btn:hover:not(:disabled) {
+      background:rgba(255,255,255,0.09);
+      border-color:rgba(255,255,255,0.22);
+      box-shadow:0 4px 16px rgba(0,0,0,.3);
+    }
+    .google-btn:disabled {
+      opacity:.6;
+      cursor:not-allowed;
+    }
+
+    .divider-row {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin:22px 0;
+    }
+    .divider-line {
+      flex:1;
+      height:1px;
+      background:rgba(255,255,255,.07);
+    }
+    .divider-label {
+      font-size:11px;
+      font-weight:600;
+      color:${T.t3};
+      letter-spacing:.35em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
   `}</style>
+);
+
+// ─── GOOGLE LOGO SVG ─────────────────────────────────────────────────
+const GoogleLogo = () => (
+  <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+    <path fill="none" d="M0 0h48v48H0z"/>
+  </svg>
+);
+
+// ─── GOOGLE AUTH HOOK ─────────────────────────────────────────────────
+function useGoogleAuth({ onSuccess, onError }) {
+  const [gsiReady, setGsiReady] = useState(false);
+
+  useEffect(() => {
+    // Load the Google Identity Services script once
+    if (document.getElementById('gsi-script')) {
+      if (window.google) setGsiReady(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.id = 'gsi-script';
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setGsiReady(true);
+    document.head.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    if (!gsiReady || !window.google) return;
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: async ({ credential }) => {
+        try {
+          // Send the ID token to your backend
+          const res = await axios.post('/api/auth/google', { credential });
+          onSuccess(res.data);
+        } catch (err) {
+          onError(err.response?.data?.message || 'Google sign-in failed. Try again.');
+        }
+      },
+    });
+  }, [gsiReady, onSuccess, onError]);
+
+  const signInWithGoogle = useCallback(() => {
+    if (!gsiReady || !window.google) {
+      onError('Google sign-in is not ready yet. Please wait a moment.');
+      return;
+    }
+    window.google.accounts.id.prompt();
+  }, [gsiReady, onError]);
+
+  return { signInWithGoogle, gsiReady };
+}
+
+// ─── GOOGLE BUTTON ───────────────────────────────────────────────────
+const GoogleBtn = ({ onClick, loading, disabled }) => (
+  <button
+    type="button"
+    className="google-btn"
+    onClick={onClick}
+    disabled={loading || disabled}
+  >
+    {loading
+      ? <IcoSpinner size={17} style={{ color: T.t3 }} />
+      : <GoogleLogo />
+    }
+    {loading ? 'Connecting to Google…' : 'Continue with Google'}
+  </button>
+);
+
+// ─── DIVIDER ─────────────────────────────────────────────────────────
+const Divider = () => (
+  <div className="divider-row">
+    <div className="divider-line" />
+    <span className="divider-label">or</span>
+    <div className="divider-line" />
+  </div>
 );
 
 // ─── ICONS ───────────────────────────────────────────────────────────
@@ -103,7 +236,6 @@ const AuthInput = ({
     <div style={{marginBottom:18}}>
       <FieldLabel>{label}</FieldLabel>
       <div style={{position:'relative'}}>
-        {/* left icon */}
         <div style={{
           position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',
           pointerEvents:'none',color:T.t3,
@@ -118,7 +250,6 @@ const AuthInput = ({
           {...props}
           className={`auth-input${togglePassword || statusEl ? ' has-right' : ''}`}
         />
-        {/* right: eye toggle */}
         {togglePassword && (
           <button type="button" onClick={togglePassword} style={{
             position:'absolute',right:13,top:'50%',transform:'translateY(-50%)',
@@ -130,14 +261,12 @@ const AuthInput = ({
               : <IcoEye    size={16} stroke={T.t3}/>}
           </button>
         )}
-        {/* right: status */}
         {!togglePassword && statusEl && (
           <div style={{
             position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',
           }}>{statusEl}</div>
         )}
       </div>
-      {/* ref feedback */}
       {statusType === 'valid' && statusOwner && (
         <div style={{
           marginTop:6,marginLeft:4,
@@ -196,19 +325,50 @@ export default function Auth() {
   const navigate      = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [authMode,    setAuthMode]    = useState('login');
-  const [isOtpSent,   setIsOtpSent]   = useState(false);
-  const [showPassword,setShowPassword]= useState(false);
-  const [loading,     setLoading]     = useState(false);
-  const [error,       setError]       = useState('');
-  const [message,     setMessage]     = useState('');
-  const [otp,         setOtp]         = useState('');
-  const [shake,       setShake]       = useState(false);
+  const [authMode,     setAuthMode]     = useState('login');
+  const [isOtpSent,    setIsOtpSent]    = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading,      setLoading]      = useState(false);
+  const [gLoading,     setGLoading]     = useState(false); // Google-specific loading
+  const [error,        setError]        = useState('');
+  const [message,      setMessage]      = useState('');
+  const [otp,          setOtp]          = useState('');
+  const [shake,        setShake]        = useState(false);
   const [formData, setFormData] = useState({
     name:'', email:'', password:'', confirmPassword:'', contact:'', refCode:'',
   });
   const [refStatus, setRefStatus] = useState('idle');
   const [refOwner,  setRefOwner]  = useState('');
+
+  // ── Google OAuth callbacks
+  const handleGoogleSuccess = useCallback((data) => {
+    setGLoading(false);
+    if (data.token) {
+      localStorage.setItem('token',    data.token);
+      localStorage.setItem('userId',   data.user?.id);
+      localStorage.setItem('userName', data.user?.name);
+      setMessage('Google sign-in successful. Redirecting…');
+      setTimeout(() => navigate('/dashboard'), 1200);
+    }
+  }, [navigate]);
+
+  const handleGoogleError = useCallback((msg) => {
+    setGLoading(false);
+    triggerError(msg);
+  }, []);
+
+  const { signInWithGoogle, gsiReady } = useGoogleAuth({
+    onSuccess: handleGoogleSuccess,
+    onError:   handleGoogleError,
+  });
+
+  const handleGoogleClick = () => {
+    setError(''); setMessage('');
+    setGLoading(true);
+    // prompt() is async via callback; reset gLoading after timeout in case prompt is dismissed
+    setTimeout(() => setGLoading(false), 8000);
+    signInWithGoogle();
+  };
 
   // redirect if already logged in
   useEffect(() => {
@@ -278,8 +438,8 @@ export default function Auth() {
       try {
         const res = await verifyOtp({ email: formData.email, otp });
         if (res.data.token) {
-          localStorage.setItem('token', res.data.token);
-          localStorage.setItem('userId', res.data.user?.id);
+          localStorage.setItem('token',    res.data.token);
+          localStorage.setItem('userId',   res.data.user?.id);
           localStorage.setItem('userName', res.data.user?.name);
           setMessage('Identity verified. Redirecting to dashboard…');
           setTimeout(() => navigate('/dashboard'), 1500);
@@ -308,8 +468,8 @@ export default function Auth() {
       try {
         const res = await login({ email: formData.email, password: formData.password });
         if (res.data.token) {
-          localStorage.setItem('token', res.data.token);
-          localStorage.setItem('userId', res.data.user?.id);
+          localStorage.setItem('token',    res.data.token);
+          localStorage.setItem('userId',   res.data.user?.id);
           localStorage.setItem('userName', res.data.user?.name);
           navigate('/dashboard');
         }
@@ -345,14 +505,12 @@ export default function Auth() {
   };
   const activeKey = isOtpSent ? 'otp' : authMode;
 
-  // icon per mode
   const HeaderIcon = () => {
     if (isOtpSent) return <IcoShield size={22} stroke={T.green} sw={1.9}/>;
     if (authMode === 'forgot') return <IcoKey size={22} stroke={T.purpleL} sw={1.9}/>;
     return <IcoBot size={22} stroke={T.purpleL} sw={1.9}/>;
   };
 
-  // icon paths for inputs
   const PATHS = {
     user:  "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
     phone: "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18L6.7 2a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z",
@@ -360,6 +518,9 @@ export default function Auth() {
     lock:  "M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zM7 11V7a5 5 0 0 1 10 0v4",
     gift:  "M20 12v10H4V12M22 7H2v5h20V7zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z",
   };
+
+  // Show Google button only on login/register, not on forgot or OTP screens
+  const showGoogleOAuth = !isOtpSent && authMode !== 'forgot';
 
   return (
     <div style={{
@@ -410,8 +571,6 @@ export default function Auth() {
 
           {/* ── HEADER ── */}
           <div style={{textAlign:'center',marginBottom:32,position:'relative',zIndex:1}}>
-
-            {/* icon badge */}
             <div style={{
               display:'inline-flex',alignItems:'center',justifyContent:'center',
               width:54,height:54,borderRadius:16,
@@ -470,12 +629,23 @@ export default function Auth() {
             </div>
           )}
 
+          {/* ── GOOGLE OAUTH (login + register only) ── */}
+          {showGoogleOAuth && (
+            <div style={{marginBottom:4,position:'relative',zIndex:1}}>
+              <GoogleBtn
+                onClick={handleGoogleClick}
+                loading={gLoading}
+                disabled={!gsiReady || loading}
+              />
+              <Divider />
+            </div>
+          )}
+
           {/* ── FORM ── */}
           <form onSubmit={handleSubmit} style={{position:'relative',zIndex:1}}>
 
             {!isOtpSent ? (
               <>
-                {/* register-only fields */}
                 {authMode === 'register' && (
                   <>
                     <AuthInput

@@ -82,6 +82,7 @@ const IcoArrow = p => <Ico {...p} d="M5 12h14M12 5l7 7-7 7"/>;
 const IcoChevD = p => <Ico {...p} d="M6 9l6 6 6-6"/>;
 const IcoChevU = p => <Ico {...p} d="M18 15l-6-6-6 6"/>;
 const IcoMenu  = p => <Ico {...p} d="M4 6h16M4 12h16M4 18h16"/>;
+const navigate = (p) => { if(typeof window!=="undefined") window.location.href=p; };
 
 // ─── WHATSAPP DEMO ───────────────────────────────────────────────────
 const WADemo = ({ active }) => {
@@ -531,12 +532,16 @@ export default function LandingPage() {
               <div className="hero-btns" style={{display:'flex',gap:12,marginBottom:28,flexWrap:'wrap'}}>
                 <button
                   style={{background:'linear-gradient(135deg,#4f46e5,#7c3aed)',color:'white',border:'none',padding:'15px 32px',borderRadius:12,fontSize:15,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:9,boxShadow:'0 6px 26px rgba(79,70,229,.42)',transition:'all .2s',transform:hov.h1?'translateY(-2px)':'translateY(0)',fontFamily:T.font}}
+                  onClick={() => navigate("/login?id=register")}   
                   onMouseEnter={on('h1')} onMouseLeave={off('h1')}>
+                    
                   Get Started Free <IcoArrow size={17}/>
                 </button>
                 <button
                   style={{background:hov.h2?'rgba(255,255,255,.08)':'rgba(255,255,255,.04)',color:T.t1,border:`1px solid ${hov.h2?T.borderH:T.border}`,padding:'15px 32px',borderRadius:12,fontSize:15,fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:9,transition:'all .2s',fontFamily:T.font}}
-                  onMouseEnter={on('h2')} onMouseLeave={off('h2')}>
+                  onMouseEnter={on('h2')} onMouseLeave={off('h2')}
+                  onClick={() => window.open('https://wa.me/917498869327?text=Hi! I how can Myautobot help me?', '_blank')}
+                  >
                   ▶ See it in action
                 </button>
               </div>
