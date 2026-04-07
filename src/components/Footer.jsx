@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { WaIcon } from "./Icons";
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────
 const T = {
@@ -400,6 +401,92 @@ const Footer = () => {
             ))}
           </div>
         </div>
+{/* ------------------- WHATSAPP FLOATING WIDGET WITH WAVING BOT ------------------- */}
+<div style={{ position: "fixed", bottom: "15px", right: "30px", zIndex: 1000, display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+    
+    {/* Animated Bot & Message Container */}
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "12px", position: "relative" }}>
+        
+        {/* The Waving Bot SVG */}
+        <svg width="60" height="60" viewBox="0 0 100 100" style={{ marginBottom: "-10px", filter: "drop-shadow(0px 4px 10px rgba(223, 214, 214, 0.1))" }}>
+            {/* Bot Body */}
+            <rect x="25" y="40" width="50" height="40" rx="15" fill="#fff" />
+            <rect x="35" y="50" width="30" height="20" rx="5" fill="#1e293b" />
+            {/* Eyes */}
+            <circle cx="42" cy="60" r="3" fill="#25d366">
+                <animate attributeName="opacity" values="1;0.2;1" dur="2s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="58" cy="60" r="3" fill="#25d366">
+                <animate attributeName="opacity" values="1;0.2;1" dur="2s" repeatCount="indefinite" />
+            </circle>
+            {/* Waving Arm */}
+            <g className="bot-arm" style={{ transformOrigin: "25px 55px", animation: "wa-wave 2s ease-in-out infinite" }}>
+                <path d="M25 55 L10 40" stroke="#fff" strokeWidth="8" strokeLinecap="round" />
+                <circle cx="10" cy="40" r="5" fill="#fff" />
+            </g>
+            {/* Static Arm */}
+            <path d="M75 55 L90 70" stroke="#fff" strokeWidth="8" strokeLinecap="round" />
+        </svg>
+
+        {/* Popup Message */}
+        <div style={{ 
+            background: "#fff", 
+            padding: "10px 18px", 
+            borderRadius: "16px", 
+            boxShadow: "0 10px 25px rgba(0,0,0,0.1)", 
+            fontSize: "12px",
+            fontWeight: 800,
+            color: "#0f172a",
+            border: "1.2px solid #0f172a",
+            textAlign: "center",
+            position: "relative",
+            whiteSpace: "nowrap"
+        }}>
+            Chat with Our BOT on WhatsApp
+            {/* Bubble Tip */}
+            <div style={{ position: "absolute", bottom: "-7px", right: "25px", width: "12px", height: "12px", background: "#fff", transform: "rotate(45deg)", borderRight: "1.2px solid #0f172a", borderBottom: "1.2px solid #0f172a" }} />
+        </div>
+    </div>
+    
+    {/* Main WhatsApp Button */}
+    <a 
+        href="https://wa.me/917498869327?text=Hello!%20I'm%20interested%20in%20WhatsApp%20Automation." 
+        target="_blank" 
+        rel="noreferrer"
+        style={{ 
+            width: "65px", 
+            height: "65px", 
+            borderRadius: "50%", 
+            background: "#25d366", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center", 
+            boxShadow: "0 10px 25px rgba(37, 211, 102, 0.4)",
+            transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+            cursor: "pointer",
+            border: "3px solid #fff"
+        }}
+        onMouseOver={e => e.currentTarget.style.transform = "scale(1.1) rotate(5deg)"}
+        onMouseOut={e => e.currentTarget.style.transform = "scale(1.0) rotate(0deg)"}
+    >
+        <WaIcon size={35} color="#ffffff" />
+    </a>
+
+    <style>{`
+      @keyframes wa-wave {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(-30deg); }
+      }
+      @keyframes wa-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+      }
+      /* Apply floating animation to the whole bot container */
+      .wa-widget-container {
+          animation: wa-float 4s ease-in-out infinite;
+      }
+    `}</style>
+</div>
 
       </div>
     </footer>
